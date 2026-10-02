@@ -131,7 +131,7 @@ describe("sessions", () => {
 
   it("throw for what the lab does not serve yet", async () => {
     stubLab();
-    const { lineage, study } = sessions();
+    const { lineage } = sessions();
     for (const call of [() => lineage.diff(1), () => lineage.runs(1)]) {
       await expect(call()).rejects.toThrow(NOT_AVAILABLE);
     }
