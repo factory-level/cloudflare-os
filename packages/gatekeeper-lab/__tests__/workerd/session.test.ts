@@ -8,7 +8,7 @@ import type { ApprovalQueue } from "@gadgets/workshop-shared/gatekeeper";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LabApi } from "../../src/lab-api";
 import {
-  NOT_AVAILABLE, type PendingRun, RevisionCatalogSession, RevisionLineageSession, StudyReaderSession,
+  LabAnalyticsSession, NOT_AVAILABLE, type PendingRun, RevisionCatalogSession, RevisionLineageSession, StudyReaderSession,
   StudyVariantSession,
 } from "../../src/lab-session";
 
@@ -81,6 +81,16 @@ function stubLab() {
     if (path === "/studies/stu_0001/portfolios") {
       return Response.json({ portfolios: [{ label: "a", portfolio: { currency: "USD", cashCents: 1, positions: [], equityCents: 1 } }] });
     }
+    if (path === "/studies") {
+      return Response.json({ studies: [{ study: { name: "ab", number: 1 }, alerts: [{ severity: "P3" }], variants: [] }] });
+    }
+    if (path === "/studies/stu_0001/equity") {
+      return Response.json({ variants: [{ label: "a", points: [{ session: "2026-06-26", equityCents: 1 }] }] });
+    }
+    if (path === "/agents") return Response.json({ agents: [{ agent: "momentum", runs: 2 }] });
+    if (path === "/agents/momentum/analytics") {
+      return Response.json({ summary: [{ agent: "momentum", revision: null, cycles: 2 }, { agent: "momentum", cycles: 2 }] });
+    }
     if (path === "/connections/con_0001/revoke") return Response.json({ connection: { id: "con_0001" } });
     return Response.json({ code: "not_found" }, { status: 404 });
   });
@@ -97,6 +107,7 @@ function sessions() {
     lineage: new RevisionLineageSession(api, stub(), "workflow", "breakout"),
     study: new StudyReaderSession(api, stub(), "stu_0001"),
     catalog: new RevisionCatalogSession(api, stub()),
+    analytics: new LabAnalyticsSession(api, stub()),
   };
 }
 
@@ -119,6 +130,23 @@ describe("sessions", () => {
       "Read workflow/breakout@1",
       "Read the files of workflow/breakout@1",
       "Read study ab #1",
+    ]);
+  });
+
+  it("record every analytics read as an observation", async () => {
+    const spy = stubLab();
+    const { queue, analytics } = sessions();
+    expect((await analytics.studies())[0]?.study.name).toBe("ab");
+    expect((await analytics.equity("stu_0001"))[0]?.points).toHaveLength(1);
+    expect(await analytics.agents()).toEqual([{ agent: "momentum", runs: 2 }]);
+    expect(await analytics.agent("momentum", { from: "2026-01-01T00:00:00Z" })).toHaveLength(2);
+    expect(spy.mock.calls.at(-1)?.[0]).toBe(
+      "https://lab.test/agents/momentum/analytics?from=2026-01-01T00%3A00%3A00Z");
+    expect(queue.observations.map((o) => o.description)).toEqual([
+      "Read 1 studies with 1 open alerts: ab #1.",
+      "Read 1 equity curves: a over 1 cycles.",
+      "Read 1 agents: momentum (2 runs).",
+      "Read momentum's activity from 2026-01-01T00:00:00Z: 2 cycles across 1 revisions.",
     ]);
   });
 

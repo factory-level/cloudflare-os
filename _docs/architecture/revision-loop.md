@@ -11,6 +11,7 @@ covers:
   - packages/gatekeeper-lab
   - packages/skills/skills/lab-catalog
   - packages/skills/skills/study-console
+  - packages/skills/skills/lab-analytics
   - packages/skills/skills/breakout-workflow/files/lib/study.ts
   - packages/skills/skills/breakout-workflow/files/server.ts
   - packages/skills/skills/breakout-workflow/__tests__/study.test.ts
@@ -25,7 +26,7 @@ updated: 2026-10-02
 
 ## Overview
 
-The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. The `lab-catalog` skill is a view of everything published, read through the connector. A study variant resource lets a workflow Gadget run one variant of a lab study: it reads the cycle and portfolio and records its decision as a queued action; the lab books any fill. `breakout-workflow` does this when `LAB_VARIANT` is bound. Binding revisions to running Gadgets, run records, views, and branding are not built in the fork.
+The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. The `lab-catalog` skill is a view of everything published, read through the connector. The `lab-analytics` skill shows every study and every agent, read through the connector's analytics resource. A study variant resource lets a workflow Gadget run one variant of a lab study: it reads the cycle and portfolio and records its decision as a queued action; the lab books any fill. `breakout-workflow` does this when `LAB_VARIANT` is bound. Binding revisions to running Gadgets and branding are not built in the fork.
 
 ## Components
 
@@ -38,8 +39,9 @@ The `gadgets` command line and its MCP server can qualify a skill directory and 
 | `packages/gatekeeper-lab/src/lab.ts` | The lab connector: connect page, vendor, account, verifier, and one read-only gatekeeper per bound resource |
 | `packages/gatekeeper-lab/src/lab-api.ts` | HTTP client for the lab. Signs in as the deployment's service, names the connection and person on every read, and maps the lab's codes to errors |
 | `packages/gatekeeper-lab/src/lab-session.ts` | The sessions a Gadget holds. Each read is authorized as an observation before it returns |
-| `packages/gatekeeper-lab/src/resources.ts` | The three bindable resource URLs and their parsing |
+| `packages/gatekeeper-lab/src/resources.ts` | The bindable resource URLs and their parsing |
 | `packages/skills/skills/study-console` | A view Gadget for one study: each variant's revision and virtual portfolio with its change from the start, run counts, a comparison of the first two variants, and every run's decision, risk rejection and fill. It ranks nothing and says the results are virtual |
+| `packages/skills/skills/lab-analytics` | A view Gadget with two linked views. Experiments: every study with its status, open alerts, and each variant's equity and change, then one study's equity chart, variant health, and alerts. Agents: every agent, then one agent's cycles, outcomes, decisions, orders, risk refusals, fills, fees, virtual equity change, and reported cost, overall and per revision, with charts of decisions and equity change per revision and links to the studies running each revision. Charts are inline SVG built by `lib/analytics.ts`. It ranks nothing, says the results are virtual, and labels cost as reported |
 | `packages/skills/skills/lab-catalog` | A view Gadget: everything published, grouped by kind, then each artifact's revisions and studies, then a revision's files |
 | `packages/gatekeeper-lab/src/types.d.ts` | The agent-facing interfaces, including those not served yet |
 | `packages/gadgets-cli/src/bin.ts`, `mcp.ts` | `gadgets qualify`, `gadgets publish`, and the `qualify_skill` and `publish_revision` tools (also covered by [Local Skill Push](local-skill-push.md)) |
@@ -67,6 +69,7 @@ A deployment signs in to the lab with one Cloudflare Access service token. Conne
 A bound resource is one of the following. Resource URLs use the fixed origin `https://lab.invalid`, which names a resource rather than a host, so a blueprint that declares a lab binding works against any deployment; requests go to `LAB_URL`.
 
 - `https://lab.invalid/revisions`, served by `RevisionCatalogGatekeeper` as `RevisionCatalog`: `list(kind?)` from the lab's `GET /revisions`, `revisions(kind, name)`, and `files(kind, name, number)`.
+- `https://lab.invalid/analytics`, served by `LabAnalyticsGatekeeper` as `LabAnalytics`: `studies()` from the lab's `GET /studies`, `equity(studyId)` from `GET /studies/:id/equity`, `agents()` from `GET /agents`, and `agent(name, {from, to})` from `GET /agents/:agent/analytics`.
 - `https://lab.invalid/revisions/<kind>/<name>`, served by `RevisionLineageGatekeeper` as `RevisionLineage`: `list()`, `get(number)`, and `files(number)`.
 - `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`, `portfolios()`, `runs()`, and `compare()`.
 - `https://lab.invalid/studies/<stu_id>/variants/<label>`, served by `StudyVariantGatekeeper` as `StudyVariant`: `describe()`, `nextCycle()`, `portfolio()`, `runs()`, and `recordRun()`.
@@ -82,7 +85,7 @@ The workflow's own virtual fill (steps 5 to 7) is not sent; the lab's risk gate 
 
 Each read sends `x-lab-connection` and `x-lab-on-behalf-of`, waits for the lab's answer, then calls `authorizeObservation` before returning. A refused read records no observation.
 
-The other interface methods throw `Not available yet`: `StudyVariant`, `AgentAnalytics`, `RevisionLineage.diff` and `runs`, and `StudyReader.portfolios`, `compare`, and `runs`. Every action method throws, because nothing is written.
+`RevisionLineage.diff` and `runs` throw `Not available yet`.
 
 Disconnecting revokes the connection at the lab (`POST /connections/:id/revoke`) and deletes the account's storage even if the lab cannot be reached. After that, every read fails on this side, and the lab refuses the connection's ID. An observer is admitted when their own lab connection can read the bound resource.
 
@@ -124,10 +127,12 @@ The lab's registry contract is defined in `factory-level/ai-trader`, in `docs/ar
 - **Publish does not push to a Workshop.** Publishing to the lab and pushing the blueprint to a Workshop are separate commands, and nothing links the lab's revision to a blueprint id.
 - **No binding-value scan.** The secret check finds credentials. It does not detect environment names or other binding values in content.
 - **The local demonstration has no lab behind its mock edge**, so publish has been exercised only against a stubbed lab in unit tests.
-- **The lab connector writes only run records.** Diffs and analytics are declared in its types but throw, because the lab does not serve them yet. `compare` can only return `invalid`, `insufficient_sample`, `incomplete` or `inconclusive` while comparison thresholds are UNSET.
+- **The lab connector writes only run records.** Diffs are declared in its types but throw, because the lab does not serve them yet. `compare` can only return `invalid`, `insufficient_sample`, `incomplete` or `inconclusive` while comparison thresholds are UNSET.
 - **A study variant is bound by hand.** Nothing creates a Gadget per variant when a study is created, and nothing checks that the bound Gadget runs the variant's exact revision.
 - **The connector acts for a person, not as an agent principal.** The design asks each study variant to call the lab as its own principal. The connector signs in as the deployment's service and names the connection and person on each read.
-- **Review per revision, analytics per agent, run records, per-variant isolation, views, and branding** are not built.
+- **Agent analytics have no run list.** The draft `AgentAnalytics` interface also listed an agent's runs; `LabAnalytics` serves summaries only, across the whole lab rather than one bound agent, so one binding feeds both views.
+- **Analytics cost is reported, not metered.** The cost column is what each agent put in its run reports.
+- **Review per revision, per-variant isolation, and branding** are not built.
 
 ## Open Questions
 

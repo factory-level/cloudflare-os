@@ -17,6 +17,7 @@ const LABEL = /^[a-z0-9][a-z0-9-]{0,31}$/;
 
 export type LabResource =
   | { type: "catalog" }
+  | { type: "analytics" }
   | { type: "revisions"; kind: RevisionRef["kind"]; name: string }
   | { type: "study"; studyId: string }
   | { type: "variant"; studyId: string; label: string };
@@ -26,6 +27,13 @@ export const CATALOG_RESOURCE: SupportedResource = {
   title: "Lab catalog",
   description: "Read everything published to the lab: every skill, workflow, agent, and strategy, " +
     "their revisions, and their files.",
+};
+
+export const ANALYTICS_RESOURCE: SupportedResource = {
+  urlPattern: `${RESOURCE_ORIGIN}/analytics`,
+  title: "Lab analytics",
+  description: "Read every study at a glance, each variant's equity over time, and what each agent " +
+    "decided, ordered, filled, and reported spending. Results are virtual.",
 };
 
 export const REVISIONS_RESOURCE: SupportedResource = {
@@ -48,10 +56,11 @@ export const VARIANT_RESOURCE: SupportedResource = {
     "each cycle. Its portfolio changes only through the lab's simulated fills.",
 };
 
-export const SUPPORTED_RESOURCES = [CATALOG_RESOURCE, REVISIONS_RESOURCE, STUDY_RESOURCE, VARIANT_RESOURCE];
+export const SUPPORTED_RESOURCES = [CATALOG_RESOURCE, ANALYTICS_RESOURCE, REVISIONS_RESOURCE, STUDY_RESOURCE, VARIANT_RESOURCE];
 
 export function resourceUrl(resource: LabResource): string {
   if (resource.type === "catalog") return `${RESOURCE_ORIGIN}/revisions`;
+  if (resource.type === "analytics") return `${RESOURCE_ORIGIN}/analytics`;
   if (resource.type === "variant") return `${RESOURCE_ORIGIN}/studies/${resource.studyId}/variants/${resource.label}`;
   return resource.type === "revisions"
     ? `${RESOURCE_ORIGIN}/revisions/${resource.kind}/${resource.name}`
@@ -69,6 +78,7 @@ export function parseResourceUrl(url: string): LabResource | null {
   if (parsed.origin !== RESOURCE_ORIGIN || parsed.search || parsed.hash) return null;
   const parts = parsed.pathname.slice(1).split("/");
   if (parts.length === 1 && parts[0] === "revisions") return { type: "catalog" };
+  if (parts.length === 1 && parts[0] === "analytics") return { type: "analytics" };
   if (parts.length === 3 && parts[0] === "revisions") {
     const [, kind, name] = parts as [string, string, string];
     if ((KINDS as readonly string[]).includes(kind) && NAME.test(name))

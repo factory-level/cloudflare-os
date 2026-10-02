@@ -3,9 +3,11 @@
 // refuses once that connection is revoked.
 
 import type {
+  AgentSummary,
   CatalogEntry,
   Comparison,
   Cycle,
+  EquityPoint,
   Portfolio,
   Revision,
   RevisionFile,
@@ -14,6 +16,7 @@ import type {
   RunQuery,
   RunReport,
   Study,
+  StudyOverview,
 } from "./types";
 
 /** Deployment configuration read from the Worker environment. */
@@ -219,6 +222,23 @@ export class LabApi {
   async portfolios(studyId: string): Promise<{ label: string; portfolio: Portfolio }[]> {
     return (await this.#read<{ portfolios: { label: string; portfolio: Portfolio }[] }>(
       "studies", studyId, "portfolios")).portfolios;
+  }
+
+  async studies(): Promise<StudyOverview[]> {
+    return (await this.#read<{ studies: StudyOverview[] }>("studies")).studies;
+  }
+
+  async equity(studyId: string): Promise<{ label: string; points: EquityPoint[] }[]> {
+    return (await this.#read<{ variants: { label: string; points: EquityPoint[] }[] }>(
+      "studies", studyId, "equity")).variants;
+  }
+
+  async agents(): Promise<{ agent: string; runs: number }[]> {
+    return (await this.#read<{ agents: { agent: string; runs: number }[] }>("agents")).agents;
+  }
+
+  async agentSummary(agent: string, range: { from?: string; to?: string } = {}): Promise<AgentSummary[]> {
+    return (await this.#readQuery<{ summary: AgentSummary[] }>(range, "agents", agent, "analytics")).summary;
   }
 
   /** Records a run. The lab keeps one run per cycle key, so repeating this changes nothing. */

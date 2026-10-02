@@ -30,10 +30,12 @@ import type {
   SupportedResource,
   VendorDescription,
 } from "@gadgets/workshop-shared/gatekeeper";
+import type { AnalyticsConfiguratorRpc } from "./configurator/analytics-configurator-types";
 import type { CatalogConfiguratorRpc } from "./configurator/catalog-configurator-types";
 import type { RevisionsConfiguratorRpc } from "./configurator/revisions-configurator-types";
 import type { StudyConfiguratorRpc } from "./configurator/study-configurator-types";
 import type { VariantConfiguratorRpc } from "./configurator/variant-configurator-types";
+import ANALYTICS_CONFIGURATOR_HTML from "./generated/analytics-configurator-ui.txt";
 import CATALOG_CONFIGURATOR_HTML from "./generated/catalog-configurator-ui.txt";
 import REVISIONS_CONFIGURATOR_HTML from "./generated/revisions-configurator-ui.txt";
 import STUDY_CONFIGURATOR_HTML from "./generated/study-configurator-ui.txt";
@@ -49,6 +51,7 @@ import {
   revoke as revokeConnection,
 } from "./lab-api";
 import {
+  LabAnalyticsSession,
   type PendingRun,
   RECORD_RUN_KIND,
   RevisionCatalogSession,
@@ -57,6 +60,7 @@ import {
   StudyVariantSession,
 } from "./lab-session";
 import {
+  ANALYTICS_RESOURCE,
   CATALOG_RESOURCE,
   KINDS,
   type LabResource,
@@ -67,7 +71,7 @@ import {
   SUPPORTED_RESOURCES,
   VARIANT_RESOURCE,
 } from "./resources";
-import type { RevisionCatalog, RevisionLineage, RevisionRef, StudyReader, StudyVariant } from "./types";
+import type { LabAnalytics, RevisionCatalog, RevisionLineage, RevisionRef, StudyReader, StudyVariant } from "./types";
 import TYPES_CODE from "./types.txt";
 
 const VENDOR_ID = "lab";
@@ -369,6 +373,9 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
     if (resourceUrlPattern === CATALOG_RESOURCE.urlPattern) {
       return { iframeHtml: CATALOG_CONFIGURATOR_HTML, ui: new RpcStub(new CatalogConfiguratorUI()) };
     }
+    if (resourceUrlPattern === ANALYTICS_RESOURCE.urlPattern) {
+      return { iframeHtml: ANALYTICS_CONFIGURATOR_HTML, ui: new RpcStub(new AnalyticsConfiguratorUI()) };
+    }
     if (resourceUrlPattern === REVISIONS_RESOURCE.urlPattern) {
       return { iframeHtml: REVISIONS_CONFIGURATOR_HTML, ui: new RpcStub(new RevisionsConfiguratorUI()) };
     }
@@ -393,6 +400,12 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
       return {
         class: this.ctx.exports.RevisionCatalogGatekeeper({ props: { userObjectId } }),
         resource: CATALOG_RESOURCE,
+      };
+    }
+    if (resource.type === "analytics") {
+      return {
+        class: this.ctx.exports.LabAnalyticsGatekeeper({ props: { userObjectId } }),
+        resource: ANALYTICS_RESOURCE,
       };
     }
     if (resource.type === "variant") {
@@ -462,6 +475,7 @@ export class LabVerifier extends WorkerEntrypoint<Env, LabUserProps> implements 
     const api = new LabApi(config, () => account.getActing());
     try {
       if (resource.type === "catalog") await api.catalog();
+      else if (resource.type === "analytics") await api.agents();
       else if (resource.type === "variant") await api.portfolio(resource.studyId, resource.label);
       else if (resource.type === "revisions") await api.listRevisions(resource.kind, resource.name);
       else await api.getStudy(resource.studyId);
@@ -483,6 +497,13 @@ export class LabVerifier extends WorkerEntrypoint<Env, LabUserProps> implements 
 class CatalogConfiguratorUI extends RpcTarget implements CatalogConfiguratorRpc {
   async resourceUrl(): Promise<string> {
     return resourceUrl({ type: "catalog" });
+  }
+}
+
+@validateRpc()
+class AnalyticsConfiguratorUI extends RpcTarget implements AnalyticsConfiguratorRpc {
+  async resourceUrl(): Promise<string> {
+    return resourceUrl({ type: "analytics" });
   }
 }
 
@@ -660,6 +681,28 @@ export class RevisionCatalogGatekeeper extends LabGatekeeper<RevisionCatalogProp
 
   async startSession(approvalQueue: RpcStub<ApprovalQueue>): Promise<RevisionCatalog> {
     return new RevisionCatalogSession(this.api(), approvalQueue.dup());
+  }
+}
+
+@validateRpc()
+export class LabAnalyticsGatekeeper extends LabGatekeeper<RevisionCatalogProps, LabAnalytics>
+    implements Gatekeeper<LabAnalytics> {
+  protected resource(): LabResource {
+    return { type: "analytics" };
+  }
+
+  async describe(): Promise<ResourceDescription> {
+    return {
+      url: this.url(),
+      title: "Trading lab analytics",
+      snippet: "Read every study at a glance, equity curves, and each agent's virtual results.",
+      suggestedBindingName: "LAB_ANALYTICS",
+      tsType: "LabAnalytics",
+    };
+  }
+
+  async startSession(approvalQueue: RpcStub<ApprovalQueue>): Promise<LabAnalytics> {
+    return new LabAnalyticsSession(this.api(), approvalQueue.dup());
   }
 }
 
