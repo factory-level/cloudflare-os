@@ -1,0 +1,32 @@
+{
+  "$comment": "A deterministic demo skill: an event-driven agent workflow (observe, classify, assert, decide, execute virtually) that returns an auditable evidence chain. Pushed with `gadgets push`, never bundled.",
+  "blueprintId": "skill.breakout-workflow",
+  "title": "Breakout Workflow",
+  "description": "Deterministic breakout/breakdown agent workflow over a bar series: classifies the latest bar, checks risk assertions, decides, fills virtually, and returns an evidence chain. Can run on a schedule, with an optional model review of runs that acted.",
+  "output": {
+    "id": "workflow-run",
+    "noun": "Workflow run",
+    "plural": "Workflow runs",
+    "icon": "chartBar"
+  },
+  "author": {
+    "type": "user",
+    "name": "Local developer",
+    "id": "local@demo.local"
+  },
+  "revision": 1,
+  "created": "2026-09-30T00:00:00.000Z",
+  "version": 3,
+  "lastUpdated": "2026-10-01T00:00:00.000Z",
+  "bindings": {
+    "REVIEW_MODEL": {
+      "title": "Review model",
+      "description": "Optional. Writes a short reviewer note on scheduled runs that bought, sold or were blocked; never makes decisions.",
+      "type": "aiModel",
+      "suggestedModel": {
+        "provider": "anthropic",
+        "modelName": "claude-haiku-4-5-20251001"
+      }
+    }
+  }
+}

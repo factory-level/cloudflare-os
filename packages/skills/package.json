@@ -1,0 +1,18 @@
+{
+  "name": "@gadgets/skills",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Skills authored locally (typically by a developer's own Claude Code) and pushed to a Workshop as blueprints with `gadgets push`. Each `skills/<name>/` uses the bundled-blueprint layout. Not a deployable Worker.",
+  "type": "module",
+  "scripts": {
+    "test:run": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@gadgets/scripts": "workspace:*",
+    "@types/node": "^26.1.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

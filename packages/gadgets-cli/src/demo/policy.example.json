@@ -1,0 +1,4 @@
+{
+  "$comment": "The demo's IAM policy: who the mock Access edge lets reach the prod-sim Workshop. Copy to packages/gadgets-cli/policy.json. Re-read on every request, so removing an email revokes it immediately.",
+  "allow": ["alice@demo.local", "bob@demo.local", "admin@demo.local"]
+}

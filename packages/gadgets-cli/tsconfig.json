@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2024"],
+    "allowImportingTsExtensions": true,
+    // Node for the CLI itself, plus Workers types because the shared RPC API's types reference
+    // Workers globals.
+    "types": ["node", "@cloudflare/workers-types"],
+    "paths": {
+      "@gadgets/workshop-shared/*": ["../workshop-shared/src/*"]
+    }
+  },
+  "include": ["src"]
+}

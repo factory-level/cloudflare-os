@@ -48,6 +48,12 @@ interface ExpectedArea {
 }
 
 const EXPECTED: Record<string, ExpectedArea> = {
+  // The `gadgets` CLI and its demo run directly with node, never as a vp task. The prod-sim sets
+  // `NODE_ENV` itself before importing Vite for the Access-mode frontend build.
+  "packages/gadgets-cli": {
+    external: ["GADGETS_CONFIG_DIR", "GADGETS_DEMO_POLICY", "GADGETS_SKILLS_DIR"],
+    injected: ["NODE_ENV"],
+  },
   "packages/gatekeeper-context": {
     forwarded: ["VITE_FRONTEND_ERROR_REPORTING"],
     injected: ["GATEKEEPER_APP_UNMINIFIED"],

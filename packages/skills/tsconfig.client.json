@@ -1,0 +1,13 @@
+// Each skill's `files/client.ts` under the DOM lib the gadget iframe provides. Mirrors
+// `@gadgets/bundled-blueprints`'s tsconfig.client.json; see it for why the sides are split.
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "types": []
+  },
+  "files": [],
+  "include": ["skills/*/files/client.ts"]
+}

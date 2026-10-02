@@ -1,0 +1,31 @@
+{
+  "uptrend": {
+    "signal": "buy",
+    "spreadBps": 182,
+    "fastAvgCents": 10420,
+    "slowAvgCents": 10233,
+    "orderIntent": {
+      "side": "buy",
+      "quantity": 95,
+      "limitCents": 10510
+    }
+  },
+  "downtrend": {
+    "signal": "sell",
+    "spreadBps": -184,
+    "fastAvgCents": 10023,
+    "slowAvgCents": 10211,
+    "orderIntent": {
+      "side": "sell",
+      "quantity": 100,
+      "limitCents": 9950
+    }
+  },
+  "sideways": {
+    "signal": "hold",
+    "spreadBps": 0,
+    "fastAvgCents": 10000,
+    "slowAvgCents": 10000,
+    "orderIntent": null
+  }
+}

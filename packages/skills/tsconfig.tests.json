@@ -1,0 +1,12 @@
+// The skills' tests (node), with the `lib/` modules they import.
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "types": ["node"]
+  },
+  "files": [],
+  "include": ["skills/*/__tests__/**/*.ts"]
+}
