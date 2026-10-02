@@ -1,5 +1,8 @@
 // Pure presentation logic for the analytics view, kept apart from the gadget so it can be tested.
-// Charts are returned as SVG element descriptions; the page turns them into nodes.
+// Charts are returned as SVG element descriptions; the page turns them into nodes. Axes and labels
+// use `currentColor`, so they follow the page theme in light and dark mode.
+
+import { SERIES, SIGNAL } from "./theme.ts";
 
 export type Revision = { kind: string; name: string; number: number; contentHash: string };
 export type Study = {
@@ -87,9 +90,9 @@ export function studiesRunning(overviews: StudyOverview[], r: Revision): { study
     .map((v) => ({ study: o.study, label: v.label })));
 }
 
-const PALETTE = ["#2563eb", "#d97706", "#7c3aed", "#0d9488", "#db2777", "#4b5563"];
+const PALETTE = SERIES;
 const ACTION_COLORS: Record<string, string> = {
-  buy: "#16a34a", sell: "#dc2626", hold: "#9ca3af", blocked: "#d97706",
+  buy: SIGNAL.gain, sell: SIGNAL.loss, hold: SIGNAL.neutral, blocked: SIGNAL.warning,
 };
 
 /** The colour of a series by position, and of a decision by its action. */
@@ -121,17 +124,17 @@ export function equityChart(series: EquitySeries[], startCents: number, width = 
     PAD.left + (sessions.length < 2 ? plotW / 2 : (sessions.indexOf(session) * plotW) / (sessions.length - 1));
   const y = (cents: number) => PAD.top + ((hi - cents) * plotH) / (hi - lo);
   const nodes: SvgNode[] = [
-    { tag: "line", attrs: { x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top + plotH, stroke: "#ccc" } },
-    { tag: "line", attrs: { x1: PAD.left, y1: PAD.top + plotH, x2: PAD.left + plotW, y2: PAD.top + plotH, stroke: "#ccc" } },
+    { tag: "line", attrs: { x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top + plotH, stroke: "currentColor", "stroke-opacity": 0.35 } },
+    { tag: "line", attrs: { x1: PAD.left, y1: PAD.top + plotH, x2: PAD.left + plotW, y2: PAD.top + plotH, stroke: "currentColor", "stroke-opacity": 0.35 } },
     { tag: "line", attrs: { x1: PAD.left, y1: r(y(startCents)), x2: PAD.left + plotW, y2: r(y(startCents)),
-      stroke: "#999", "stroke-dasharray": "4 4" } },
-    { tag: "text", attrs: { x: PAD.left - 6, y: PAD.top + 4, "text-anchor": "end", "font-size": 11 }, text: money(hi, "") },
-    { tag: "text", attrs: { x: PAD.left - 6, y: PAD.top + plotH, "text-anchor": "end", "font-size": 11 }, text: money(lo, "") },
+      stroke: "currentColor", "stroke-dasharray": "4 4" } },
+    { tag: "text", attrs: { x: PAD.left - 6, y: PAD.top + 4, "text-anchor": "end", "font-size": 11, fill: "currentColor" }, text: money(hi, "") },
+    { tag: "text", attrs: { x: PAD.left - 6, y: PAD.top + plotH, "text-anchor": "end", "font-size": 11, fill: "currentColor" }, text: money(lo, "") },
   ];
   if (sessions.length) {
     nodes.push(
-      { tag: "text", attrs: { x: PAD.left, y: height - 8, "font-size": 11 }, text: sessions[0] as string },
-      { tag: "text", attrs: { x: PAD.left + plotW, y: height - 8, "text-anchor": "end", "font-size": 11 },
+      { tag: "text", attrs: { x: PAD.left, y: height - 8, "font-size": 11, fill: "currentColor" }, text: sessions[0] as string },
+      { tag: "text", attrs: { x: PAD.left + plotW, y: height - 8, "text-anchor": "end", "font-size": 11, fill: "currentColor" },
         text: sessions.at(-1) as string },
     );
   }
@@ -159,7 +162,7 @@ export function decisionChart(rows: AgentSummary[], width = 640): Chart {
   rows.forEach((row, i) => {
     const top = i * (barH + gap);
     const total = Object.values(row.decisions).reduce((s, n) => s + n, 0);
-    nodes.push({ tag: "text", attrs: { x: 0, y: top + 13, "font-size": 12 }, text: revisionName(row.revision) });
+    nodes.push({ tag: "text", attrs: { x: 0, y: top + 13, "font-size": 12, fill: "currentColor" }, text: revisionName(row.revision) });
     let at = left;
     for (const [index, action] of actions.entries()) {
       const n = row.decisions[action] ?? 0;
@@ -184,17 +187,17 @@ export function changeChart(rows: AgentSummary[], width = 640): Chart {
   const most = Math.max(1, ...rows.map((r) => Math.abs(r.equityChangeCents)));
   const zero = left + plotW / 2;
   const nodes: SvgNode[] = [
-    { tag: "line", attrs: { x1: zero, y1: 0, x2: zero, y2: rows.length * (barH + gap), stroke: "#999" } },
+    { tag: "line", attrs: { x1: zero, y1: 0, x2: zero, y2: rows.length * (barH + gap), stroke: "currentColor" } },
   ];
   rows.forEach((row, i) => {
     const top = i * (barH + gap);
     const w = Math.round(((Math.abs(row.equityChangeCents) * plotW) / 2 / most) * 10) / 10;
     const negative = row.equityChangeCents < 0;
     nodes.push(
-      { tag: "text", attrs: { x: 0, y: top + 13, "font-size": 12 }, text: revisionName(row.revision) },
+      { tag: "text", attrs: { x: 0, y: top + 13, "font-size": 12, fill: "currentColor" }, text: revisionName(row.revision) },
       { tag: "rect", attrs: { x: negative ? zero - w : zero, y: top, width: w, height: barH,
-        fill: negative ? "#dc2626" : "#16a34a" } },
-      { tag: "text", attrs: { x: left + plotW + 8, y: top + 13, "font-size": 11 },
+        fill: negative ? SIGNAL.loss : SIGNAL.gain } },
+      { tag: "text", attrs: { x: left + plotW + 8, y: top + 13, "font-size": 11, fill: "currentColor" },
         text: `${row.equityChangeCents > 0 ? "+" : ""}${money(row.equityChangeCents, "")}` },
     );
   });

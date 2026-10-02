@@ -4,6 +4,7 @@ import {
   actionColor, type AgentSummary, type Chart, changeChart, counts, decisionChart, type EquitySeries, equityChart, microUsd,
   money, revisionName, seriesColor, signedChange, type StudyOverview, studiesRunning,
 } from "./lib/analytics.ts";
+import { THEME_CSS } from "./lib/theme.ts";
 
 declare const gadget: {
   bound(): Promise<boolean>;
@@ -19,17 +20,19 @@ type Route =
   | { view: "agents" }
   | { view: "agent"; agent: string; from?: string; to?: string };
 
-document.body.style.cssText = "font: 14px/1.5 system-ui, sans-serif; margin: 16px; color: #1c1a18";
+const theme = document.createElement("style");
+theme.textContent = THEME_CSS;
+document.head.append(theme);
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, css?: string): HTMLElementTagNameMap[K] {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
-  if (css) node.style.cssText = css;
+  if (className) node.className = className;
   return node;
 }
 
 function link(text: string, to: Route): HTMLAnchorElement {
-  const a = el("a", text, "color: #2563eb; cursor: pointer; text-decoration: underline");
+  const a = el("a", text);
   a.href = "#";
   a.addEventListener("click", (event) => {
     event.preventDefault();
@@ -38,22 +41,25 @@ function link(text: string, to: Route): HTMLAnchorElement {
   return a;
 }
 
+/** A signed amount, coloured as a gain or a loss. */
+function changed(text: string, cents: number): HTMLSpanElement {
+  return el("span", text, cents > 0 ? "gain" : cents < 0 ? "loss" : undefined);
+}
+
 function back(text: string, to: Route): HTMLParagraphElement {
-  const p = el("p", undefined, "margin: 0");
+  const p = el("p");
   p.append(link(text, to));
   return p;
 }
 
 function table(headers: string[], rows: (string | Node)[][]): HTMLTableElement {
-  const t = el("table", undefined, "border-collapse: collapse; margin: 8px 0 20px; width: 100%");
+  const t = el("table");
   const head = t.insertRow();
-  for (const label of headers) head.append(el("th", label, "text-align: left; padding: 4px 10px; border-bottom: 1px solid #ddd"));
+  for (const label of headers) head.append(el("th", label));
   for (const row of rows) {
     const tr = t.insertRow();
     for (const value of row) {
-      const cell = tr.insertCell();
-      cell.style.cssText = "padding: 3px 10px; vertical-align: top";
-      cell.append(value);
+      tr.insertCell().append(value);
     }
   }
   return t;
@@ -75,9 +81,12 @@ function svg(chart: Chart): SVGSVGElement {
 }
 
 function legend(items: { label: string; color: string }[]): HTMLElement {
-  const p = el("p", undefined, "margin: 4px 0 16px");
+  const p = el("p", undefined, "muted");
   for (const item of items) {
-    p.append(el("span", "■ ", `color: ${item.color}`), el("span", `${item.label}   `, "margin-right: 12px"));
+    // The swatch takes its series' colour, which is data, so it is the one inline style here.
+    const swatch = el("span", "■ ");
+    swatch.style.color = item.color;
+    p.append(swatch, el("span", `${item.label}\u2003`));
   }
   return p;
 }
@@ -85,12 +94,8 @@ function legend(items: { label: string; color: string }[]): HTMLElement {
 const VIRTUAL = "Virtual results: not live performance, and nothing is ranked.";
 
 function nav(active: "studies" | "agents"): HTMLElement {
-  const bar = el("p", undefined, "margin: 0 0 12px");
-  const tab = (label: string, to: Route, on: boolean) => {
-    const node = on ? el("strong", label) : link(label, to);
-    node.style.marginRight = "16px";
-    return node;
-  };
+  const bar = el("nav");
+  const tab = (label: string, to: Route, on: boolean) => (on ? el("strong", label) : link(label, to));
   bar.append(tab("Experiments", { view: "studies" }, active === "studies"), tab("Agents", { view: "agents" }, active === "agents"));
   return bar;
 }
@@ -106,18 +111,19 @@ async function studiesView(): Promise<Node[]> {
   const studies = await allStudies();
   return [
     nav("studies"),
-    el("h1", "Experiments", "font-size: 18px; margin: 0"),
-    el("p", VIRTUAL, "color: #666"),
+    el("h1", "Experiments"),
+    el("p", VIRTUAL, "muted"),
     studies.length
       ? table(["Study", "Status", "Alerts", "Variants: equity and change", "Runs", "Created"], studies.map((o) => {
           const start = o.study.startingCapital.amountCents;
           const variants = el("span");
           for (const v of o.variants) {
-            variants.append(el("div", `${v.label} ${revisionName(v.revision)}: ${money(v.equityCents, o.study.startingCapital.currency)} ` +
-              signedChange(v.changeCents, start)));
+            const line = el("div", `${v.label} ${revisionName(v.revision)}: ${money(v.equityCents, o.study.startingCapital.currency)} `);
+            line.append(changed(signedChange(v.changeCents, start), v.changeCents));
+            variants.append(line);
           }
           return [link(`${o.study.name} #${o.study.number}`, { view: "study", studyId: o.study.id }), o.study.status,
-            o.alerts.length ? el("span", `${o.alerts.length} open`, "color: #b42318") : "none", variants,
+            o.alerts.length ? el("span", `${o.alerts.length} open`, "error") : "none", variants,
             String(o.variants.reduce((n, v) => n + v.runs, 0)), o.createdAt.slice(0, 10)];
         }))
       : el("p", "No study exists yet."),
@@ -132,19 +138,19 @@ async function studyView(studyId: string): Promise<Node[]> {
   return [
     nav("studies"),
     back("← All experiments", { view: "studies" }),
-    el("h1", `${o.study.name} #${o.study.number} (${o.study.status})`, "font-size: 18px; margin: 4px 0"),
-    el("p", `${VIRTUAL} ${o.study.executionModel}, ${money(start, currency)} per variant.`, "color: #666"),
-    el("h2", "Equity at each cycle's close", "font-size: 15px"),
+    el("h1", `${o.study.name} #${o.study.number} (${o.study.status})`),
+    el("p", `${VIRTUAL} ${o.study.executionModel}, ${money(start, currency)} per variant.`, "muted"),
+    el("h2", "Equity at each cycle's close"),
     svg(equityChart(series, start)),
-    legend([...series.map((s, i) => ({ label: s.label, color: seriesColor(i) })), { label: "starting capital (dashed)", color: "#999" }]),
-    el("h2", "Variants", "font-size: 15px"),
+    legend([...series.map((s, i) => ({ label: s.label, color: seriesColor(i) })), { label: "starting capital (dashed)", color: "currentColor" }]),
+    el("h2", "Variants"),
     table(["Variant", "Revision", "Equity", "Change", "Runs", "Status", "Last cycle", "Behind", "Working orders"],
       o.variants.map((v) => {
         const h = o.health.find((x) => x.label === v.label);
-        return [v.label, revisionName(v.revision), money(v.equityCents, currency), signedChange(v.changeCents, start),
+        return [v.label, revisionName(v.revision), money(v.equityCents, currency), changed(signedChange(v.changeCents, start), v.changeCents),
           String(v.runs), h?.status ?? "-", h?.lastCycle ?? "none", String(h?.cyclesBehind ?? "-"), String(h?.workingOrders ?? "-")];
       })),
-    el("h2", "Alerts", "font-size: 15px"),
+    el("h2", "Alerts"),
     o.alerts.length
       ? table(["Severity", "Variant", "Kind", "Detail"], o.alerts.map((a) => [a.severity, a.variant, a.kind, a.detail]))
       : el("p", "No open alerts."),
@@ -155,8 +161,8 @@ async function agentsView(): Promise<Node[]> {
   const agents = await gadget.agents();
   return [
     nav("agents"),
-    el("h1", "Agents", "font-size: 18px; margin: 0"),
-    el("p", VIRTUAL, "color: #666"),
+    el("h1", "Agents"),
+    el("p", VIRTUAL, "muted"),
     agents.length
       ? table(["Agent", "Runs"], agents.map((a) => [link(a.agent, { view: "agent", agent: a.agent }), String(a.runs)]))
       : el("p", "No agent has recorded a run yet."),
@@ -187,7 +193,7 @@ async function agentView(route: Extract<Route, { view: "agent" }>): Promise<Node
     });
     return [r.revision ? revisionName(r.revision) : el("strong", "All revisions"), String(r.cycles), counts(r.outcomes),
       counts(r.decisions), String(r.orders), String(r.riskRejections), String(r.fills), money(r.feesCents, currency),
-      `${r.equityChangeCents > 0 ? "+" : ""}${money(r.equityChangeCents, currency)}`, microUsd(r.reportedCostMicroUsd),
+      changed(`${r.equityChangeCents > 0 ? "+" : ""}${money(r.equityChangeCents, currency)}`, r.equityChangeCents), microUsd(r.reportedCostMicroUsd),
       r.revision ? (ran.length ? where : "none now") : ""];
   };
   const actions = [...new Set(revisions.flatMap((r) => Object.keys(r.decisions)))].toSorted();
@@ -195,16 +201,16 @@ async function agentView(route: Extract<Route, { view: "agent" }>): Promise<Node
   return [
     nav("agents"),
     back("← All agents", { view: "agents" }),
-    el("h1", `Agent ${route.agent}`, "font-size: 18px; margin: 4px 0"),
+    el("h1", `Agent ${route.agent}`),
     el("p", `${VIRTUAL} Cost is what the agent reported for its own runs, not a metered amount.` +
-      (total?.asOf ? ` Latest run ${total.asOf.slice(0, 19).replace("T", " ")} UTC.` : ""), "color: #666"),
+      (total?.asOf ? ` Latest run ${total.asOf.slice(0, 19).replace("T", " ")} UTC.` : ""), "muted"),
     form,
     table(["Revision", "Cycles", "Outcomes", "Decisions", "Orders", "Refused by risk", "Fills", "Fees", "Equity change",
       "Reported cost", "Studies"], rows.map(row)),
-    el("h2", "Decisions per revision", "font-size: 15px"),
+    el("h2", "Decisions per revision"),
     revisions.length ? svg(chart) : el("p", "No runs in this range."),
     legend(actions.map((a, i) => ({ label: a, color: actionColor(a, i) }))),
-    el("h2", "Virtual equity change per revision", "font-size: 15px"),
+    el("h2", "Virtual equity change per revision"),
     revisions.length ? svg(changeChart(revisions)) : el("p", "No runs in this range."),
   ];
 }
@@ -212,10 +218,10 @@ async function agentView(route: Extract<Route, { view: "agent" }>): Promise<Node
 let showing = 0;
 async function show(route: Route): Promise<void> {
   const ticket = ++showing;
-  document.body.replaceChildren(el("p", "Loading…", "color: #666"));
+  document.body.replaceChildren(el("p", "Loading…", "muted"));
   try {
     if (!(await gadget.bound())) {
-      document.body.replaceChildren(el("h1", "Lab Analytics", "font-size: 18px"),
+      document.body.replaceChildren(el("h1", "Lab Analytics"),
         el("p", "Bind LAB_ANALYTICS to the trading lab to see its studies and agents."));
       return;
     }
@@ -226,8 +232,8 @@ async function show(route: Route): Promise<void> {
     if (ticket === showing) document.body.replaceChildren(...nodes);
   } catch (error) {
     if (ticket === showing) {
-      document.body.replaceChildren(el("h1", "Lab Analytics", "font-size: 18px"),
-        el("p", error instanceof Error ? error.message : String(error), "color: #b42318"));
+      document.body.replaceChildren(el("h1", "Lab Analytics"),
+        el("p", error instanceof Error ? error.message : String(error), "error"));
     }
   }
 }
