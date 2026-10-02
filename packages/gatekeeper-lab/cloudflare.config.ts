@@ -33,4 +33,5 @@ export const migrations: DurableObjectMigration[] = [
   { tag: "v0", new_sqlite_classes: ["UserAccount", "RevisionLineageGatekeeper", "StudyReaderGatekeeper"] },
   { tag: "v1", new_sqlite_classes: ["RevisionCatalogGatekeeper"] },
   { tag: "v2", new_sqlite_classes: ["StudyVariantGatekeeper"] },
+  { tag: "v3", new_sqlite_classes: ["LabAnalyticsGatekeeper"] },
 ];

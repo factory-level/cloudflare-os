@@ -48,6 +48,12 @@
       "new_sqlite_classes": [
         "StudyVariantGatekeeper"
       ]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": [
+        "LabAnalyticsGatekeeper"
+      ]
     }
   ]
 }

@@ -162,21 +162,81 @@ export type Comparison = {
   recordClass: "virtual";
 };
 
-/** What one agent did, for one revision or across all of them. */
+/** What one agent did, for one revision or across all of them. These are virtual results, never ranked. */
 export type AgentSummary = {
   agent: string;
   /** The revision this row covers, or null for all revisions together. */
-  revision: RevisionRef | null;
+  revision: (RevisionRef & { contentHash: string }) | null;
   cycles: number;
   /** Cycles by `outcome`. */
   outcomes: { [outcome: string]: number };
-  /** Decided cycles by what was decided, e.g. `{ buy: 3, hold: 40, blocked: 1 }`. */
+  /** Decided cycles by what was decided: the part after `->`, e.g. `{ buy: 3, hold: 40, blocked: 1 }`. */
   decisions: { [decision: string]: number };
-  /** Order intents the risk gate rejected. */
+  /** Cycles that asked for an order. */
+  orders: number;
+  /** Order intents the risk gate refused. */
   riskRejections: number;
-  costMicroUsd: number;
+  fills: number;
+  /** Simulated fees on those fills, in cents. */
+  feesCents: number;
+  /**
+   * The virtual equity change, in cents, of every study variant that ran this agent's revisions. A
+   * variant runs one revision, so its whole change counts toward that revision.
+   */
+  equityChangeCents: number;
+  /** What the agent said its cycles cost, in USD micro-dollars. Reported by the agent, not metered. */
+  reportedCostMicroUsd: number;
   /** ISO-8601 time of the latest run counted. */
   asOf: string | null;
+  recordClass: "virtual";
+};
+
+/** A variant's health: whether it is keeping up with the market sessions it may run. */
+export type VariantHealth = {
+  label: string;
+  status: "active" | "paused" | "retired";
+  /** The variant's latest recorded cycle key, if any. */
+  lastCycle: string | null;
+  /** The newest session that has closed. */
+  latestSession: string | null;
+  /** Closed sessions this variant has not run yet. More than one means it has fallen behind. */
+  cyclesBehind: number;
+  /** Approved orders still waiting for the next open. */
+  workingOrders: number;
+};
+
+/** Something about a study a person should look at. */
+export type StudyAlert = {
+  severity: "P2" | "P3" | "P4";
+  kind: "falling_behind" | "agent_failure" | "stale_evidence" | "risk_refusals" | "paused" | "retired";
+  variant: string;
+  detail: string;
+};
+
+/** One study at a glance. */
+export type StudyOverview = {
+  study: Study;
+  /** ISO-8601 time the study was created. */
+  createdAt: string;
+  health: VariantHealth[];
+  alerts: StudyAlert[];
+  variants: {
+    label: string;
+    revision: RevisionRef & { contentHash: string };
+    /** Virtual equity now, in cents. */
+    equityCents: number;
+    /** Virtual equity now minus the starting capital, in cents. */
+    changeCents: number;
+    /** Runs recorded. */
+    runs: number;
+  }[];
+};
+
+/** A variant's virtual equity at the close of one cycle it ran. */
+export type EquityPoint = {
+  /** The cycle's session, e.g. `"2026-06-26"`. */
+  session: string;
+  equityCents: number;
 };
 
 /** Options for reading runs, newest first. */
@@ -287,15 +347,25 @@ export interface RevisionCatalog {
   files(kind: RevisionRef["kind"], name: string, number: number): Promise<RevisionFile[]>;
 }
 
-/**
- * One agent's analytics, read-only: for agent views.
- *
- * Not available yet: every method always throws `"Not available yet"`.
- */
-export interface AgentAnalytics {
-  /** One row for the agent across all revisions, then one row per revision, lowest number first. */
-  summary(options?: { from?: string; to?: string }): Promise<AgentSummary[]>;
+/** Experiments and agents across the whole lab, read-only: for analytics views. */
+export interface LabAnalytics {
+  /** Every study, newest first, with its health, alerts, and each variant's equity. */
+  studies(): Promise<StudyOverview[]>;
 
-  /** The agent's runs, newest first. `revision` limits them to one revision number. */
-  runs(query?: RunQuery & { revision?: number }): Promise<Run[]>;
+  /**
+   * Each variant's equity at the close of every cycle it ran, oldest first.
+   *
+   * Throws if the study does not exist.
+   */
+  equity(studyId: string): Promise<{ label: string; points: EquityPoint[] }[]>;
+
+  /** Every agent that has recorded runs, by name, with how many. */
+  agents(): Promise<{ agent: string; runs: number }[]>;
+
+  /**
+   * One row for the agent across all its revisions, then one row per revision, lowest number first.
+   * `from` and `to` are ISO-8601 times that limit which runs count. An agent with no runs gets one
+   * empty row.
+   */
+  agent(agent: string, options?: { from?: string; to?: string }): Promise<AgentSummary[]>;
 }
