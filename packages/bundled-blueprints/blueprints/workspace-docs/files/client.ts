@@ -83,7 +83,7 @@ style.textContent = `
   --text:   #1d1d20;
   --muted:  #6b6b73;
   --faint:  #9a9aa2;
-  --accent: #e1632e;
+  --accent: #047857;
   --ok:#1f9d77; --warn:#b9842f; --bad:#c4566a;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -100,7 +100,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: rgba(225,99,46,0.22); }
+::selection { background: rgba(4,120,87,0.22); }
 
 /* Thin scrollbars */
 * { scrollbar-width: thin; scrollbar-color: rgba(20,20,25,0.22) transparent; }
@@ -177,7 +177,7 @@ html, body {
 }
 .icon-btn:hover { background: var(--surface-2); border-color: var(--line); color: var(--text); }
 .icon-btn:active { transform: scale(0.94); }
-.icon-btn.active { background: rgba(225,99,46,0.12); border-color: rgba(225,99,46,0.35); color: var(--accent); }
+.icon-btn.active { background: rgba(4,120,87,0.12); border-color: rgba(4,120,87,0.35); color: var(--accent); }
 .icon-btn svg { width: 16px; height: 16px; }
 .icon-btn[disabled] { opacity: .4; pointer-events: none; }
 
@@ -219,7 +219,7 @@ html, body {
 .cmenu-item.sel { color: var(--accent); }
 .cmenu-item.sel::after {
   content: ""; width: 13px; height: 13px; flex: 0 0 auto;
-  background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e1632e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23047857' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
 }
 
 /* Color buttons */
@@ -328,7 +328,7 @@ html, body {
   pointer-events: auto;
 }
 .drop-target {
-  box-shadow: inset 0 0 0 3px rgba(225,99,46,0.28);
+  box-shadow: inset 0 0 0 3px rgba(4,120,87,0.28);
 }
 .doc-page:empty:before {
   content: "Start writing…"; color: var(--faint);

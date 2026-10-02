@@ -8,5 +8,5 @@
     "types": ["node"]
   },
   "files": [],
-  "include": ["skills/*/__tests__/**/*.ts"]
+  "include": ["skills/*/__tests__/**/*.ts", "__tests__/*.ts"]
 }

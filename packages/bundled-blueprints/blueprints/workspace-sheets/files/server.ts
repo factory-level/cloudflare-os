@@ -248,7 +248,7 @@ export class Gadget extends DurableObject<unknown, unknown> {
     const info: CollaboratorInfo = {
       clientId: String(client.clientId || ""),
       name: String(client.name || "Guest").slice(0, 40),
-      color: String(client.color || "#e1632e"),
+      color: String(client.color || "#047857"),
     };
     // Registering and snapshotting inside the queue means the subscriber sees
     // every operation committed after its snapshot, and none before it. The
@@ -267,7 +267,7 @@ export class Gadget extends DurableObject<unknown, unknown> {
       type: "cursor",
       clientId: String(presence.clientId || ""),
       name: String(presence.name || "Guest").slice(0, 40),
-      color: String(presence.color || "#e1632e"),
+      color: String(presence.color || "#047857"),
       sheetId: presence.sheetId ? String(presence.sheetId) : null,
       r1: int(presence.r1), c1: int(presence.c1),
       r2: int(presence.r2), c2: int(presence.c2),

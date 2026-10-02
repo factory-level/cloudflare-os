@@ -13,3 +13,4 @@ Create documents from [`_template.md`](_template.md).
 | [Local Skill Push](local-skill-push.md) | `gadgets` CLI, skills, local harness pairing, authoring rules | Deterministic packing, identity-bound push through `importBlueprint`, MCP bridge, and a local production demonstration |
 | [Env-Sourced Anthropic Model](env-anthropic-model.md) | `env-models.ts` and its wiring in the Workshop backend | Offer an Anthropic model configured from the environment as the default |
 | [Dev Login](dev-login.md) | `gadgets dev-login` and the frontend's `features/dev-login` | Sign a local dev Workshop's browser in from the command line |
+| [Pentacles Branding](pentacles-branding.md) | `branding.json` and every surface that carries its name or accent | The pentacles name and emerald accent across the Workshop, connect pages, gatekeeper apps, bundled blueprints, and lab views |

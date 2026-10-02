@@ -2,6 +2,7 @@
 import {
   change, type Comparison, comparisonSummary, money, orderOutcome, type Portfolio, type Run, type Study, tally,
 } from "./lib/console.ts";
+import { THEME_CSS } from "./lib/theme.ts";
 
 declare const gadget: {
   overview(): Promise<
@@ -16,22 +17,24 @@ declare const gadget: {
   >;
 };
 
-document.body.style.cssText = "font: 14px/1.5 system-ui, sans-serif; margin: 16px; color: #1c1a18";
+const theme = document.createElement("style");
+theme.textContent = THEME_CSS;
+document.head.append(theme);
 
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, css?: string): HTMLElementTagNameMap[K] {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string, className?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
-  if (css) node.style.cssText = css;
+  if (className) node.className = className;
   return node;
 }
 
 function table(headers: string[], rows: string[][]): HTMLTableElement {
-  const t = el("table", undefined, "border-collapse: collapse; margin: 8px 0 20px; width: 100%");
+  const t = el("table");
   const head = t.insertRow();
-  for (const label of headers) head.append(el("th", label, "text-align: left; padding: 4px 10px; border-bottom: 1px solid #ddd"));
+  for (const label of headers) head.append(el("th", label));
   for (const row of rows) {
     const tr = t.insertRow();
-    for (const value of row) tr.insertCell().append(el("span", value, "padding: 3px 10px; display: block"));
+    for (const value of row) tr.insertCell().append(value);
   }
   return t;
 }
@@ -39,17 +42,17 @@ function table(headers: string[], rows: string[][]): HTMLTableElement {
 try {
   const view = await gadget.overview();
   if (!view.bound) {
-    document.body.replaceChildren(el("h1", "Study Console", "font-size: 18px"),
+    document.body.replaceChildren(el("h1", "Study Console"),
       el("p", "Bind LAB_STUDY to a trading lab study to see its variants and runs."));
   } else {
     const { study, portfolios, runs } = view;
     const start = study.startingCapital.amountCents;
     const counts = tally(runs);
     document.body.replaceChildren(
-      el("h1", `${study.name} #${study.number} (${study.status})`, "font-size: 18px"),
+      el("h1", `${study.name} #${study.number} (${study.status})`),
       el("p", `Virtual results under ${study.executionModel}, from ${money(start, study.startingCapital.currency)} per variant. ` +
-        "Not live performance; variants are not ranked.", "color: #666"),
-      el("h2", "Variants", "font-size: 15px"),
+        "Not live performance; variants are not ranked.", "muted"),
+      el("h2", "Variants"),
       table(["Variant", "Revision", "Cash", "Positions", "Equity", "Change", "Runs", "Orders", "Refused", "Filled"],
         study.variants.map((v) => {
           const p = portfolios.find((x) => x.label === v.label)?.portfolio;
@@ -63,15 +66,15 @@ try {
             String(n.runs), String(n.orders), String(n.refused), String(n.filled)];
         })),
       ...(view.comparison
-        ? [el("h2", "Comparison", "font-size: 15px"),
+        ? [el("h2", "Comparison"),
           el("p", comparisonSummary(view.comparison, study.startingCapital.currency))]
         : []),
-      el("h2", "Runs, newest first", "font-size: 15px"),
+      el("h2", "Runs, newest first"),
       table(["Cycle", "Variant", "Agent", "Outcome", "Decision", "Order"],
         runs.map((r) => [r.cycleKey, r.variant, r.agent, r.outcome, r.decision, orderOutcome(r)])),
     );
   }
 } catch (error) {
-  document.body.replaceChildren(el("h1", "Study Console", "font-size: 18px"),
-    el("p", error instanceof Error ? error.message : String(error), "color: #b42318"));
+  document.body.replaceChildren(el("h1", "Study Console"),
+    el("p", error instanceof Error ? error.message : String(error), "error"));
 }
