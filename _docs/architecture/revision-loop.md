@@ -39,7 +39,7 @@ The `gadgets` command line and its MCP server can qualify a skill directory and 
 | `packages/gatekeeper-lab/src/lab-api.ts` | HTTP client for the lab. Signs in as the deployment's service, names the connection and person on every read, and maps the lab's codes to errors |
 | `packages/gatekeeper-lab/src/lab-session.ts` | The sessions a Gadget holds. Each read is authorized as an observation before it returns |
 | `packages/gatekeeper-lab/src/resources.ts` | The three bindable resource URLs and their parsing |
-| `packages/skills/skills/study-console` | A view Gadget for one study: each variant's revision and virtual portfolio with its change from the start, run counts, and every run's decision, risk rejection and fill. It ranks nothing and says the results are virtual |
+| `packages/skills/skills/study-console` | A view Gadget for one study: each variant's revision and virtual portfolio with its change from the start, run counts, a comparison of the first two variants, and every run's decision, risk rejection and fill. It ranks nothing and says the results are virtual |
 | `packages/skills/skills/lab-catalog` | A view Gadget: everything published, grouped by kind, then each artifact's revisions and studies, then a revision's files |
 | `packages/gatekeeper-lab/src/types.d.ts` | The agent-facing interfaces, including those not served yet |
 | `packages/gadgets-cli/src/bin.ts`, `mcp.ts` | `gadgets qualify`, `gadgets publish`, and the `qualify_skill` and `publish_revision` tools (also covered by [Local Skill Push](local-skill-push.md)) |
@@ -68,7 +68,7 @@ A bound resource is one of the following. Resource URLs use the fixed origin `ht
 
 - `https://lab.invalid/revisions`, served by `RevisionCatalogGatekeeper` as `RevisionCatalog`: `list(kind?)` from the lab's `GET /revisions`, `revisions(kind, name)`, and `files(kind, name, number)`.
 - `https://lab.invalid/revisions/<kind>/<name>`, served by `RevisionLineageGatekeeper` as `RevisionLineage`: `list()`, `get(number)`, and `files(number)`.
-- `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`, `portfolios()`, and `runs()`.
+- `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`, `portfolios()`, `runs()`, and `compare()`.
 - `https://lab.invalid/studies/<stu_id>/variants/<label>`, served by `StudyVariantGatekeeper` as `StudyVariant`: `describe()`, `nextCycle()`, `portfolio()`, `runs()`, and `recordRun()`.
 
 `recordRun` is the connector's only write, and it is a queued action. It stores the report in the gatekeeper's own storage under the next action ID and submits it as kind `lab.record_run` ("Record study runs"), marked auto-approvable, with the report as a JSON field. A repeat for the same cycle key reuses the waiting action. It returns the run with ID `pending:<n>`. While any run is waiting, `nextCycle()` returns null and `runs()` lists the waiting runs first. `applyAction` posts the report to the lab's `POST /studies/:id/variants/:label/runs`, which keeps one run per cycle key, and then forgets it. `rejectAction` forgets it unsent. `revertAction` explains that runs are permanent. `getAutoApprovableActions` lists the kind, so a workspace can approve every run without asking.
@@ -124,7 +124,7 @@ The lab's registry contract is defined in `factory-level/ai-trader`, in `docs/ar
 - **Publish does not push to a Workshop.** Publishing to the lab and pushing the blueprint to a Workshop are separate commands, and nothing links the lab's revision to a blueprint id.
 - **No binding-value scan.** The secret check finds credentials. It does not detect environment names or other binding values in content.
 - **The local demonstration has no lab behind its mock edge**, so publish has been exercised only against a stubbed lab in unit tests.
-- **The lab connector writes only run records.** Comparisons, diffs, and analytics are declared in its types but throw, because the lab does not serve them yet.
+- **The lab connector writes only run records.** Diffs and analytics are declared in its types but throw, because the lab does not serve them yet. `compare` can only return `invalid`, `insufficient_sample`, `incomplete` or `inconclusive` while comparison thresholds are UNSET.
 - **A study variant is bound by hand.** Nothing creates a Gadget per variant when a study is created, and nothing checks that the bound Gadget runs the variant's exact revision.
 - **The connector acts for a person, not as an agent principal.** The design asks each study variant to call the lab as its own principal. The connector signs in as the deployment's service and names the connection and person on each read.
 - **Review per revision, analytics per agent, run records, per-variant isolation, views, and branding** are not built.

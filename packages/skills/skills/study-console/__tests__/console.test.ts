@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { change, money, orderOutcome, type Run, tally } from "../files/lib/console.ts";
+import { change, comparisonSummary, money, orderOutcome, type Run, tally } from "../files/lib/console.ts";
 
 const run = (over: Partial<Run>): Run => ({
   id: "run_1", variant: "a", cycleKey: "2026-06-26", agent: "x", outcome: "decided", decision: "hold",
@@ -25,6 +25,12 @@ describe("console helpers", () => {
     expect(orderOutcome(run({ orderIntent: order }))).toBe("buy 10 FIXT: waiting for the next open");
     expect(orderOutcome(run({ orderIntent: order, fill: { side: "buy", quantity: 10, priceCents: 5003, feeCents: 100 } })))
       .toBe("buy 10 FIXT: filled 10 at 50.03 + fee 1.00");
+  });
+
+  it("summarizes a comparison without naming a winner", () => {
+    expect(comparisonSummary({ variants: ["a", "b"], sharedCycles: 50, equityChangeCents: [76_291, -1_200],
+      costMicroUsd: [0, 0], outcome: "inconclusive", recordClass: "virtual" }, "USD"))
+      .toBe("a and b differ, but no threshold is set to call it (50 shared cycles; equity change 762.91 USD vs -12.00 USD).");
   });
 
   it("tallies runs per variant", () => {

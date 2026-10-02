@@ -74,6 +74,10 @@ function stubLab() {
       return Response.json({ cycle: { key: "2026-06-26", symbol: "FIXT", bars: [{ t: 1, closeCents: 5000, volume: 9 }] } });
     }
     if (path === "/studies/stu_0001/variants/a/runs" || path === "/studies/stu_0001/runs") return Response.json({ runs: [] });
+    if (path === "/studies/stu_0001/compare") {
+      return Response.json({ comparison: { variants: ["a", "b"], sharedCycles: 0, equityChangeCents: [0, 0],
+        costMicroUsd: [0, 0], outcome: "insufficient_sample", recordClass: "virtual" } });
+    }
     if (path === "/studies/stu_0001/portfolios") {
       return Response.json({ portfolios: [{ label: "a", portfolio: { currency: "USD", cashCents: 1, positions: [], equityCents: 1 } }] });
     }
@@ -128,7 +132,7 @@ describe("sessions", () => {
   it("throw for what the lab does not serve yet", async () => {
     stubLab();
     const { lineage, study } = sessions();
-    for (const call of [() => lineage.diff(1), () => lineage.runs(1), () => study.compare("a", "b")]) {
+    for (const call of [() => lineage.diff(1), () => lineage.runs(1)]) {
       await expect(call()).rejects.toThrow(NOT_AVAILABLE);
     }
   });
@@ -201,9 +205,11 @@ describe("StudyVariantSession", () => {
     const { study, queue } = sessions();
     expect(await study.portfolios()).toHaveLength(1);
     expect(await study.runs()).toEqual([]);
+    expect((await study.compare("a", "b")).outcome).toBe("insufficient_sample");
     expect(queue.observations.map((o) => o.title)).toEqual([
       "Read the portfolios of study stu_0001",
       "Read runs of study stu_0001",
+      "Compare a and b in study stu_0001",
     ]);
   });
 });
