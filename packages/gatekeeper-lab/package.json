@@ -1,0 +1,29 @@
+{
+  "name": "@gadgets/gatekeeper-lab",
+  "version": "1.0.0",
+  "description": "Trading Lab connector: the path from a workspace to the ai-trader lab API. Exposes a fixed catalog of typed operations; reads are observations, writes are queued actions. No queries, no publishing.",
+  "type": "module",
+  "main": "./src/lab.ts",
+  "scripts": {
+    "dev": "echo \"run 'pnpm dev-server' in the root directory instead\" >&2 && exit 1",
+    "deploy": "vp run --no-cache build:configurator && wrangler deploy",
+    "test:run": "vitest run && vitest run -c vitest.worker.config.ts",
+    "clean": "rm -rf dist src/generated"
+  },
+  "dependencies": {
+    "@gadgets/configurator-ui": "workspace:*",
+    "@gadgets/gatekeeper-kit": "workspace:*",
+    "@gadgets/observability": "workspace:*",
+    "@gadgets/workshop-shared": "workspace:*",
+    "capnweb": "catalog:",
+    "capnweb-validate": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "catalog:",
+    "@gadgets/scripts": "workspace:*",
+    "miniflare": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "wrangler": "catalog:"
+  }
+}

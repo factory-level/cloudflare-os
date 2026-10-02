@@ -496,6 +496,10 @@ const PASSTHROUGH_GATEKEEPER_VARS: Record<string, string[]> = {
     "MCP_PORTAL_TRUST_ANNOTATIONS", "MCP_PORTAL_HIDDEN_SERVER_IDS", "MCP_ALLOW_INSECURE",
   ],
   "gatekeeper-mcp": ["MCP_ALLOW_INSECURE"],
+  // Fork: the trading lab connector (see _docs/architecture/revision-loop.md).
+  "gatekeeper-lab": [
+    "LAB_URL", "LAB_CLIENT_ID", "LAB_CLIENT_SECRET", "LAB_ASSERTION", "LAB_ALLOW_TYPED_EMAIL",
+  ],
 };
 
 for (const gk of gatekeepers) {
