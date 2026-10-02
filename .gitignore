@@ -52,6 +52,3 @@ wrangler.dev.jsonc
 
 # Packed gadget archives.
 *.gadget
-
-# Unfinished lab connector scaffold; not built in the fork yet.
-/packages/gatekeeper-lab/

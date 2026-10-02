@@ -1,7 +1,7 @@
 ---
 title: Revision Loop
 status: draft
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Revision Loop
@@ -14,7 +14,7 @@ The fork is the product's development environment: the one place a person builds
 
 The product contract is specified in the `factory-level/ai-trader` repository, in `docs/design/revision-loop.md` and its proposed ADR 0006. This document does not restate it. It records what the fork must add to Cloudflare OS to meet that contract, and how it does so without editing upstream files.
 
-Qualification and publish to the lab are built; see [architecture](../architecture/revision-loop.md). Packing and push are described in [Local Skill Push](local-skill-push.md). Nothing else here is built.
+Qualification and publish to the lab are built, and a read-only part of the lab connector; see [architecture](../architecture/revision-loop.md). Packing and push are described in [Local Skill Push](local-skill-push.md). Nothing else here is built.
 
 ## Relationship to Upstream
 
