@@ -10,7 +10,7 @@ touchpoints:
   - .gitignore
   - scripts/env-passthrough.test.ts
   - pnpm-lock.yaml
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Local Skill Push
@@ -32,7 +32,7 @@ A command-line tool, `gadgets`, packs skills authored under `packages/skills/ski
 | `packages/gadgets-cli/src/login.ts`, `credentials.ts` | Sign-in through `cloudflared` or the mock edge; credentials stored under the user's configuration directory with owner-only permissions |
 | `packages/gadgets-cli/src/pairing.ts` | Loopback bridge that receives a local Workshop session after a one-time code is confirmed |
 | `packages/gadgets-cli/src/mcp.ts` | MCP server with `workshop_status`, `list_skills`, `test_skill`, `pack_skill`, `install_skill_locally`, and `push_skill`, plus the two tools described in [Revision Loop](revision-loop.md) |
-| `packages/gadgets-cli/src/bin.ts` | Command entry: `skill list`, `skill test`, `skill pack`, `login`, `push`, `verify`, `mcp`, plus `qualify` and `publish` described in [Revision Loop](revision-loop.md) |
+| `packages/gadgets-cli/src/bin.ts` | Command entry: `skill list`, `skill test`, `skill pack`, `login`, `push`, `verify`, `mcp`, plus `qualify` and `publish` described in [Revision Loop](revision-loop.md) and `dev-login` described in [Dev Login](dev-login.md) |
 | `packages/gadgets-cli/src/demo/` | Mock Cloudflare Access edge, an Access-mode Workshop behind it, the launcher for the local client, and the scripted proof |
 | `packages/workshop-frontend/src/features/local-harness/` | "Connect local agent harness" launcher and pairing panel |
 | `packages/workshop-frontend/vite.harness.config.ts` | Merges upstream's Vite configuration and injects the launcher's entry when serving |

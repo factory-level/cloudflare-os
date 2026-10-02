@@ -12,3 +12,4 @@ Create documents from [`_template.md`](_template.md).
 | [Agent Development Loop](agent-dev-loop.md) | Replay, watcher, comparison, golden files, snapshots, and headless workspaces in the `gadgets` CLI; each skill's harness | Inner loop on the developer's machine and middle loop in a Workshop |
 | [Local Skill Push](local-skill-push.md) | `gadgets` CLI, skills, local harness pairing, authoring rules | Deterministic packing, identity-bound push through `importBlueprint`, MCP bridge, and a local production demonstration |
 | [Env-Sourced Anthropic Model](env-anthropic-model.md) | `env-models.ts` and its wiring in the Workshop backend | Offer an Anthropic model configured from the environment as the default |
+| [Dev Login](dev-login.md) | `gadgets dev-login` and the frontend's `features/dev-login` | Sign a local dev Workshop's browser in from the command line |
