@@ -8,6 +8,7 @@ import { createTypedStorage, collection } from "@gadgets/typed-storage";
 import { recordAnalytics } from "./analytics";
 import { createWorkshopLogger } from "./observability";
 import { getAiGatewayConfig, type AiGatewayConfig } from "./ai-gateway.js";
+import { envModelList, resolveEnvModel } from "./env-models.js";
 import { utcDayKey, nextUtcMidnightIso, DailyQuotaResult } from "./ai-gateway-billing/limits/config.js";
 import type { AdminSettings } from "./admin-settings.js";
 import { isReservedBlueprintKey, readBlueprintKvRecord } from "./blueprint-archive.js";
@@ -661,7 +662,8 @@ export class UserDurableObject extends DurableObject<Cloudflare.Env> {
   }
 
   #listModels(gwConfig: AiGatewayConfig | null): AiChatAuthorInfo[] {
-    let result: AiChatAuthorInfo[] = [];
+    // Fork: an env-sourced model (ANTHROPIC_API_KEY) comes first, so it is the default.
+    let result: AiChatAuthorInfo[] = gwConfig ? [] : envModelList(this.env);
 
     // When AI Gateway mode is active, include the suggested models offered on enabled providers.
     if (gwConfig) {
@@ -913,7 +915,9 @@ export class UserDurableObject extends DurableObject<Cloudflare.Env> {
    * model with the same ID.
    */
   #resolveModel(id: string, gwConfig: AiGatewayConfig | null): UserAiModelRecord | undefined {
-    return gwConfig?.resolveModel(id) ?? this.storage.aiModels.get(id);
+    return gwConfig?.resolveModel(id) ??
+      (gwConfig ? undefined : resolveEnvModel(this.env, id)) ??  // Fork: env-sourced model.
+      this.storage.aiModels.get(id);
   }
 
   async listGadgets(): Promise<GadgetMetadataWithTimestamps[]> {
