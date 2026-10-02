@@ -53,7 +53,7 @@ The env model is disabled whenever platform AI Gateway mode (`CF_AI_GATEWAY`) is
 ## Divergences from Design
 
 - No design doc or ADR exists for this change. It was made to bring the platform up locally against a real model.
-- The workspace instructions refer to `_docs/AGENTS.md` and `_docs/check-docs.sh`, but neither exists in this checkout. This doc follows the front-matter convention of `ai-trader/docs/` instead.
+- The front matter carries `status: draft`, which `_docs/AGENTS.md` does not list for architecture docs. It was written before the fork doc rules existed.
 - Hand-added models with the same ID as the env model are shadowed by it. Unlike gateway models, the `addModel`, `deleteModel` and `#getHandAddedModel` checks do not account for env models.
 
 ## Open Questions
