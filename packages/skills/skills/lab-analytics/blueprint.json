@@ -7,7 +7,7 @@
     "id": "analytics",
     "noun": "Analytics view",
     "plural": "Analytics views",
-    "icon": "chart"
+    "icon": "chartBar"
   },
   "author": {
     "type": "user",
