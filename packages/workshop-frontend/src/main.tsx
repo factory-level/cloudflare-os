@@ -14,6 +14,10 @@ import FrontendErrorBoundary from './FrontendErrorBoundary'
 import { installWorkshopErrorReporting, reportIssue } from './errorReporting'
 import { applySiteFavicon, cacheBustSiteLogoUrl } from './siteLogoUtils'
 import { getBackendHost } from './connectHandoff';
+import { consumeDevLoginToken } from './features/dev-login/consumeDevLoginToken'
+
+// Fork: `gadgets dev-login` hands its session over in the URL fragment (loopback hosts only).
+consumeDevLoginToken()
 
 // ---------------------------------------------------------------------------
 // Dev auto-login: if VITE_DEV_AUTO_LOGIN=true, automatically create/login

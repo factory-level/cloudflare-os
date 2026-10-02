@@ -13,6 +13,7 @@ import { DEFAULT_SOURCES, newSkill } from "./scaffold.ts";
 import { openTarget } from "./target.ts";
 import { callGadget, cleanTried, latestTried, readTried, tryInWorkshop } from "./workspace.ts";
 import { loginToWorkshop } from "./login.ts";
+import { DEFAULT_DEV_API, DEFAULT_DEV_PASSWORD, DEFAULT_DEV_USER, devLogin, openInBrowser } from "./devLogin.ts";
 import { serveMcp } from "./mcp.ts";
 import { publishRevision } from "./lab.ts";
 import { parseBind, resolveBindings, suggestedBindings } from "./bindings.ts";
@@ -44,6 +45,8 @@ const USAGE = `Usage:
   gadgets qualify <skill> [--out <record.json>]
   gadgets publish <skill> --lab <lab-url>
   gadgets login <workshop-url> [--email <identity>]     (--email: demo mock edge only)
+  gadgets dev-login [--user <name>] [--password <pw>] [--api <url>] [--app <url>] [--no-open] [--print-token]
+                                                        (sign the browser in to a local dev Workshop)
   gadgets push <skill> --to <workshop-url> [--skip-tests]
   gadgets verify <blueprint-id> --to <workshop-url> --sha256 <hash>
   gadgets mcp [--pair <code>] [--pairing-port <port>]   (run by an agent harness)
@@ -77,6 +80,12 @@ async function main(argv: string[]): Promise<number> {
       method: { type: "string" },
       bind: { type: "string", multiple: true },
       args: { type: "string" },
+      user: { type: "string" },
+      password: { type: "string" },
+      api: { type: "string" },
+      app: { type: "string" },
+      "no-open": { type: "boolean" },
+      "print-token": { type: "boolean" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -94,6 +103,20 @@ async function main(argv: string[]): Promise<number> {
       const url = required(rest[0], "workshop-url");
       const { origin, email } = await loginToWorkshop(url, { email: values.email });
       console.log(`Logged in to ${origin}${email ? ` as ${email}` : ""}.`);
+      return 0;
+    }
+
+    case "dev-login": {
+      const signedIn = await devLogin({
+        api: values.api ?? DEFAULT_DEV_API,
+        app: values.app,
+        username: values.user ?? DEFAULT_DEV_USER,
+        password: values.password ?? process.env.GADGETS_DEV_PASSWORD ?? DEFAULT_DEV_PASSWORD,
+      });
+      console.log(`${signedIn.created ? "Created and signed in" : "Signed in"} as ${signedIn.username}.`);
+      if (values["print-token"]) console.log(signedIn.token);
+      if (values["no-open"]) console.log(`Open to sign the browser in:\n  ${signedIn.link}`);
+      else openInBrowser(signedIn.link);
       return 0;
     }
 

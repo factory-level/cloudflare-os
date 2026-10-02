@@ -19,6 +19,7 @@
     "@gadgets/bundled-blueprints": "workspace:*",
     "@gadgets/workshop-shared": "workspace:*",
     "capnweb": "catalog:",
+    "hash-wasm": "^4.12.0",
     "jsonc-parser": "^3.3.1"
   },
   "devDependencies": {
