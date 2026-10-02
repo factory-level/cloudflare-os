@@ -1,0 +1,30 @@
+{
+  "$comment": "A console for one trading lab study, read through the lab connector. Pushed with `gadgets push`, never bundled.",
+  "blueprintId": "skill.study-console",
+  "title": "Study Console",
+  "description": "Shows one trading lab study: each variant's revision and virtual portfolio, and every run with its decision, risk rejection, and simulated fill.",
+  "output": {
+    "id": "console",
+    "noun": "Console",
+    "plural": "Consoles",
+    "icon": "table"
+  },
+  "author": {
+    "type": "user",
+    "name": "Local developer",
+    "id": "local@demo.local"
+  },
+  "revision": 1,
+  "created": "2026-10-02T00:00:00.000Z",
+  "version": 1,
+  "lastUpdated": "2026-10-02T00:00:00.000Z",
+  "bindings": {
+    "LAB_STUDY": {
+      "title": "Trading lab study",
+      "description": "Connect the trading lab and choose the study to show. The console only reads.",
+      "type": "gatekeeper",
+      "gatekeeperName": "lab",
+      "typeUrlPattern": "https://lab.invalid/studies/:studyId"
+    }
+  }
+}

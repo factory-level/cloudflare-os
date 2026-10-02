@@ -10,6 +10,7 @@ covers:
   - packages/skills/skills/breakout-workflow/files/revision.json
   - packages/gatekeeper-lab
   - packages/skills/skills/lab-catalog
+  - packages/skills/skills/study-console
   - packages/skills/skills/breakout-workflow/files/lib/study.ts
   - packages/skills/skills/breakout-workflow/files/server.ts
   - packages/skills/skills/breakout-workflow/__tests__/study.test.ts
@@ -38,6 +39,7 @@ The `gadgets` command line and its MCP server can qualify a skill directory and 
 | `packages/gatekeeper-lab/src/lab-api.ts` | HTTP client for the lab. Signs in as the deployment's service, names the connection and person on every read, and maps the lab's codes to errors |
 | `packages/gatekeeper-lab/src/lab-session.ts` | The sessions a Gadget holds. Each read is authorized as an observation before it returns |
 | `packages/gatekeeper-lab/src/resources.ts` | The three bindable resource URLs and their parsing |
+| `packages/skills/skills/study-console` | A view Gadget for one study: each variant's revision and virtual portfolio with its change from the start, run counts, and every run's decision, risk rejection and fill. It ranks nothing and says the results are virtual |
 | `packages/skills/skills/lab-catalog` | A view Gadget: everything published, grouped by kind, then each artifact's revisions and studies, then a revision's files |
 | `packages/gatekeeper-lab/src/types.d.ts` | The agent-facing interfaces, including those not served yet |
 | `packages/gadgets-cli/src/bin.ts`, `mcp.ts` | `gadgets qualify`, `gadgets publish`, and the `qualify_skill` and `publish_revision` tools (also covered by [Local Skill Push](local-skill-push.md)) |
