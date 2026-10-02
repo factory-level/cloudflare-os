@@ -47,16 +47,16 @@ declare const RpcTarget: SyncHost["RpcTarget"];
 
 /* ----------------------- Design tokens ----------------------------------- */
 const C = {
-  page:        "#f5f1eb",
-  surface:     "#fff9ef",
-  surfaceSoft: "#fff4e6",
-  text:        "#2b0b05",
-  muted:       "#7b6254",
-  subtle:      "#a89082",
-  border:      "#ead6c4",
-  borderLight: "#f2e3d5",
-  orange:      "#ff5f2e",
-  orangeDark:  "#c84724",
+  page:        "#f1f1ef",
+  surface:     "#f7f7f7",
+  surfaceSoft: "#f3f3f2",
+  text:        "#191917",
+  muted:       "#6b6b64",
+  subtle:      "#999991",
+  border:      "#d8d8d6",
+  borderLight: "#e5e5e2",
+  orange:      "#10b981",
+  orangeDark:  "#047857",
   blue:        "#0a95ff",
   purple:      "#9b3ff6",
   green:       "#26a641",
@@ -73,8 +73,8 @@ const toneFill: Record<string, string> = {
 };
 const toneColor: Record<string, string> = {
   neutral:    "#747474",
-  tangerine: "#F6821F",
-  ruby:      "#FF6633",
+  tangerine: "#047857",
+  ruby:      "#0F766E",
 };
 
 const FONT     = 'Inter, Arial, sans-serif';
@@ -231,10 +231,10 @@ const COMPONENTS: Record<string, ComponentDef> = {
       { key: "text", label: "Text", type: "text" },
     ],
     render(props, ctx) {
-      // Eyebrow: always accent orange, uppercase, SemiBold, +5% tracking.
+      // Eyebrow: always the accent (Ruby), uppercase, SemiBold, +5% tracking.
       return ctx.inlineText(el("div", {
         style: {
-          color: "#FF6633",
+          color: "#0F766E",
           fontSize: "10px", fontWeight: "600", lineHeight: "1",
           letterSpacing: "0.05em", textTransform: "uppercase",
           whiteSpace: "nowrap",
@@ -286,7 +286,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
         wrap.appendChild(el("div", {
           style: {
             width: (6 * scale) + "px", height: (6 * scale) + "px",
-            borderRadius: "50%", background: "#F6821F",
+            borderRadius: "50%", background: "#047857",
             flex: `0 0 ${6 * scale}px`,
             transform: `translateY(${-1 * scale}px)`,
           },
@@ -317,7 +317,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
       wrap.appendChild(svgFromString(`
         <svg width="${conf.svg}" height="${conf.svg}" viewBox="0 0 86 86" xmlns="http://www.w3.org/2000/svg">
           <polygon points="43 6 77 25 77 61 43 80 9 61 9 25"
-            fill="none" stroke="#ff4801" stroke-width="10" stroke-linejoin="round"/>
+            fill="none" stroke="#047857" stroke-width="10" stroke-linejoin="round"/>
         </svg>`));
       wrap.appendChild(el("div", {
         text: "gadgets",
@@ -326,7 +326,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
           fontSize: conf.fs + "px",
           fontWeight: "500",
           letterSpacing: "-0.055em",
-          color: "#140400",
+          color: "#0a0a0a",
           lineHeight: "1",
         },
       }));
@@ -488,7 +488,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
           style: {
             width: "6px", height: "6px", flex: "0 0 6px",
             marginTop: compact ? "7px" : "8px",
-            borderRadius: "50%", background: "#F6821F",
+            borderRadius: "50%", background: "#047857",
           },
         }));
         row.appendChild(el("div", {
@@ -542,7 +542,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
       if (props.eyebrow) {
         wrap.appendChild(ctx.inlineText(el("div", {
           style: {
-            color: "#FF6633", fontSize: "10px", fontWeight: "600",
+            color: "#0F766E", fontSize: "10px", fontWeight: "600",
             letterSpacing: "0.05em", textTransform: "uppercase",
             lineHeight: "1.2",
           },
@@ -787,11 +787,11 @@ const COMPONENTS: Record<string, ComponentDef> = {
       // strip remains visible at every stage scale and outside edit mode
       // (where there is no selection/interaction layer to repaint it).
       const isBrandBar = /viewBox=["']0 0 1200 12["']/.test(raw) &&
-        raw.includes("#FF6633") && raw.includes("#F6821F") &&
-        raw.includes("#FBAD41");
+        raw.includes("#0F766E") && raw.includes("#047857") &&
+        raw.includes("#34D399");
       if (isBrandBar) {
         wrap.style.background =
-          "linear-gradient(90deg, #FF6633 0%, #F6821F 50%, #FBAD41 100%)";
+          "linear-gradient(90deg, #0F766E 0%, #047857 50%, #34D399 100%)";
       }
       if (!raw) {
         wrap.style.border = `1px dashed ${hexA(C.muted, 0.35)}`;
@@ -872,7 +872,7 @@ const COMPONENTS: Record<string, ComponentDef> = {
     ],
     render(props) {
       const color = ({
-        muted: "#747474", tangerine: "#F6821F", ruby: "#FF6633",
+        muted: "#747474", tangerine: "#047857", ruby: "#0F766E",
       } as Record<string, string>)[props.color || "muted"];
       const svgEl = svg("svg", {
         width: 1200, height: 675, viewBox: "0 0 1200 675",
@@ -969,18 +969,18 @@ const COMP_ICON: Record<string, string> = {
   svg:          `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5 2.5 8 6 11.5"/><path d="M10 4.5 13.5 8 10 11.5"/></svg>`,
 };
 
-const COVER_ORANGE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="b" x2="1" y2="1"><stop stop-color="#ff5115"/><stop offset=".56" stop-color="#ff861f"/><stop offset="1" stop-color="#ffc02c"/></linearGradient><linearGradient id="a" x2="1" y2=".8"><stop stop-color="#ff5a16"/><stop offset="1" stop-color="#ffad25"/></linearGradient></defs><rect width="1200" height="675" fill="url(#b)"/><path d="M-42-50C374-81 699-4 886 185c171 172 157 399-13 490H0V0z" fill="#ff5a17" opacity=".64"/><path d="M7 675C126 389 380 208 694 198c256-8 427 90 506 169v308z" fill="url(#a)" opacity=".66"/><path d="M1199 98c-29 282-237 494-518 558-192 44-413 37-675 19" fill="none" stroke="#ffbe20" stroke-width="2.2" opacity=".92"/></svg>`;
+const COVER_ORANGE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="b" x2="1" y2="1"><stop stop-color="#047857"/><stop offset=".56" stop-color="#059669"/><stop offset="1" stop-color="#34d399"/></linearGradient><linearGradient id="a" x2="1" y2=".8"><stop stop-color="#047857"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs><rect width="1200" height="675" fill="url(#b)"/><path d="M-42-50C374-81 699-4 886 185c171 172 157 399-13 490H0V0z" fill="#047857" opacity=".64"/><path d="M7 675C126 389 380 208 694 198c256-8 427 90 506 169v308z" fill="url(#a)" opacity=".66"/><path d="M1199 98c-29 282-237 494-518 558-192 44-413 37-675 19" fill="none" stroke="#34d399" stroke-width="2.2" opacity=".92"/></svg>`;
 const COVER_ORANGE_URL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(COVER_ORANGE_SVG)}`;
 
 /* Bottom brand bar: left→right Ruby → Tangerine → Mango gradient. */
-const BOTTOM_BAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 12" preserveAspectRatio="none"><defs><linearGradient id="cfbar"><stop stop-color="#FF6633"/><stop offset=".5" stop-color="#F6821F"/><stop offset="1" stop-color="#FBAD41"/></linearGradient></defs><rect width="1200" height="12" fill="url(#cfbar)"/></svg>`;
+const BOTTOM_BAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 12" preserveAspectRatio="none"><defs><linearGradient id="cfbar"><stop stop-color="#0F766E"/><stop offset=".5" stop-color="#047857"/><stop offset="1" stop-color="#34D399"/></linearGradient></defs><rect width="1200" height="12" fill="url(#cfbar)"/></svg>`;
 
 /* =====================================================================
  *  Slide templates
  *  -------------------------------------------------------------------
  *  Two ready-made slide layouts, both on the 1200×675 canvas:
  *
- *   - makeTitleSlide()   → the orange full-bleed COVER (title + subtitle
+ *   - makeTitleSlide()   → the emerald full-bleed COVER (title + subtitle
  *                          + white horizontal logo). Used for the deck's
  *                          opening slide.
  *   - makeContentSlide() → a white BASIC content slide following the
@@ -997,7 +997,7 @@ type SlideTemplate = Omit<SlideInput, "blocks"> & { blocks: BlockInput[] };
 
 function makeTitleSlide(): SlideTemplate {
   return {
-    background: { color: "#F6821F", inset: false, coverOrange: true },
+    background: { color: "#047857", inset: false, coverOrange: true },
     blocks: [
       { type: "logo", x: 36, y: 56, w: 267, props: {} },
       { type: "title", x: 33, y: 197, w: 687,
@@ -1058,7 +1058,7 @@ function makeFourColumnSlide(): SlideTemplate {
     slide.blocks.splice(-1, 0,
       { type: "text", x, y: 194, w: 40,
         props: { text: String(i + 1).padStart(2, "0"), fontSize: 14,
-          weight: 600, color: "#FF6633", family: "sans", align: "left", lineHeight: 1.2 } },
+          weight: 600, color: "#0F766E", family: "sans", align: "left", lineHeight: 1.2 } },
       { type: "text", x, y: 228, w: 260,
         props: { text: "Column heading", fontSize: 16, weight: 600,
           color: "#000000", family: "sans", align: "left", lineHeight: 1.3 } },
@@ -1076,7 +1076,7 @@ function DotGrid(opacity = 0.42) {
     style: {
       position: "absolute", inset: "0",
       opacity: String(opacity),
-      backgroundImage: "radial-gradient(circle, #fff7ef 1.5px, transparent 1.5px)",
+      backgroundImage: "radial-gradient(circle, #f7f7f7 1.5px, transparent 1.5px)",
       backgroundSize: "38px 36px",
       backgroundPosition: "30px 18px",
       pointerEvents: "none",
@@ -1694,7 +1694,7 @@ function sectionLabel(text: string, extra?: HTMLElement): HTMLDivElement {
       padding: "0 4px 8px",
       fontSize: "10px", fontWeight: "750",
       letterSpacing: "0.1em", textTransform: "uppercase",
-      color: "#7b6254",
+      color: "#6b6b64",
     },
   });
   row.appendChild(el("span", { text }));
@@ -1709,7 +1709,7 @@ function sectionBlock(children: ElChild[], opts: { padding?: string; border?: bo
   return el("div", {
     style: {
       padding: opts.padding || "18px 16px 0",
-      borderTop: opts.border ? "1px solid rgba(255,245,232,0.05)" : "none",
+      borderTop: opts.border ? "1px solid rgba(244,244,243,0.05)" : "none",
       marginTop: opts.border ? "18px" : "0",
     },
   }, children);
@@ -1721,8 +1721,8 @@ function renderComponentLibrary(): HTMLDivElement {
   const wrap = el("div", { style: { padding: "14px 12px 6px" }});
   const card = el("div", {
     style: {
-      background: "rgba(255,245,232,0.025)",
-      border: "1px solid rgba(255,245,232,0.06)",
+      background: "rgba(244,244,243,0.025)",
+      border: "1px solid rgba(244,244,243,0.06)",
       borderRadius: "12px",
       overflow: "hidden",
       display: "flex", flexDirection: "column",
@@ -1734,11 +1734,11 @@ function renderComponentLibrary(): HTMLDivElement {
     style: {
       display: "flex", alignItems: "center", gap: "8px",
       padding: "9px 12px",
-      borderBottom: "1px solid rgba(255,245,232,0.05)",
+      borderBottom: "1px solid rgba(244,244,243,0.05)",
     },
   });
   search.appendChild(svgFromString(
-    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a7164" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.3-4.3"/></svg>`));
+    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b7b73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.3-4.3"/></svg>`));
   const input = el("input", {
     type: "text",
     placeholder: "Add component",
@@ -1747,7 +1747,7 @@ function renderComponentLibrary(): HTMLDivElement {
       flex: "1",
       background: "transparent",
       border: "none", outline: "none",
-      color: "#fff5e8",
+      color: "#f4f4f3",
       fontSize: "12px", fontFamily: FONT,
       padding: "0", letterSpacing: "0",
     },
@@ -1795,7 +1795,7 @@ function renderComponentLibrary(): HTMLDivElement {
     style: {
       background: "transparent", border: "none",
       padding: "2px", margin: "0",
-      color: "#8a7164", cursor: "pointer",
+      color: "#7b7b73", cursor: "pointer",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       borderRadius: "4px",
       opacity: librarySearch ? "1" : "0",
@@ -1806,11 +1806,11 @@ function renderComponentLibrary(): HTMLDivElement {
   });
   clear.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M6 18 18 6"/></svg>`;
   clear.addEventListener("mouseenter", () => {
-    clear.style.color = "#fff5e8";
-    clear.style.background = "rgba(255,245,232,0.08)";
+    clear.style.color = "#f4f4f3";
+    clear.style.background = "rgba(244,244,243,0.08)";
   });
   clear.addEventListener("mouseleave", () => {
-    clear.style.color = "#8a7164";
+    clear.style.color = "#7b7b73";
     clear.style.background = "transparent";
   });
   search.appendChild(clear);
@@ -1851,7 +1851,7 @@ function populateLibraryList(list: HTMLElement): void {
       text: "No matches",
       style: {
         padding: "18px", textAlign: "center",
-        color: "#7b6254", fontSize: "11.5px",
+        color: "#6b6b64", fontSize: "11.5px",
       },
     }));
     return;
@@ -1870,7 +1870,7 @@ function populateLibraryList(list: HTMLElement): void {
           padding: "10px 14px 4px",
           fontSize: "9.5px", fontWeight: "800",
           letterSpacing: "0.12em", textTransform: "uppercase",
-          color: "#6e5747",
+          color: "#5e5e57",
         },
       }));
       for (const t of types) list.appendChild(libraryItem(t));
@@ -1905,7 +1905,7 @@ function libraryItem(type: string): HTMLButtonElement {
       width: "100%",
       padding: "7px 12px",
       background: "transparent",
-      color: "#e8d6c2",
+      color: "#d6d6d4",
       border: "none",
       cursor: "pointer",
       fontFamily: FONT, textAlign: "left",
@@ -1917,8 +1917,8 @@ function libraryItem(type: string): HTMLButtonElement {
       width: "22px", height: "22px", flex: "0 0 22px",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       borderRadius: "5px",
-      background: "rgba(255,245,232,0.05)",
-      color: "#b89e87",
+      background: "rgba(244,244,243,0.05)",
+      color: "#a3a39c",
       transition: "background 140ms var(--ease), color 140ms var(--ease)",
     },
   });
@@ -1939,7 +1939,7 @@ function libraryItem(type: string): HTMLButtonElement {
     el("div", {
       text: COMP_DESC[type] || "",
       style: {
-        fontSize: "10.5px", color: "#7b6254",
+        fontSize: "10.5px", color: "#6b6b64",
         lineHeight: "1.2",
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
       },
@@ -1948,7 +1948,7 @@ function libraryItem(type: string): HTMLButtonElement {
   const plus = el("span", {
     html: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
     style: {
-      color: "#8a7164",
+      color: "#7b7b73",
       display: "inline-flex",
       opacity: "0",
       transform: "translateX(-2px)",
@@ -1957,20 +1957,20 @@ function libraryItem(type: string): HTMLButtonElement {
   });
   item.appendChild(plus);
   item.addEventListener("mouseenter", () => {
-    item.style.background = "rgba(255,245,232,0.06)";
+    item.style.background = "rgba(244,244,243,0.06)";
     iconWrap.style.background = hexA(C.orange, 0.18);
-    iconWrap.style.color = "#ffb18d";
+    iconWrap.style.color = "#6ee7b7";
     plus.style.opacity = "1";
     plus.style.transform = "translateX(0)";
-    plus.style.color = "#ffb18d";
+    plus.style.color = "#6ee7b7";
   });
   item.addEventListener("mouseleave", () => {
     item.style.background = "transparent";
-    iconWrap.style.background = "rgba(255,245,232,0.05)";
-    iconWrap.style.color = "#b89e87";
+    iconWrap.style.background = "rgba(244,244,243,0.05)";
+    iconWrap.style.color = "#a3a39c";
     plus.style.opacity = "0";
     plus.style.transform = "translateX(-2px)";
-    plus.style.color = "#8a7164";
+    plus.style.color = "#7b7b73";
   });
   return item;
 }
@@ -2018,7 +2018,7 @@ function renderSelectedBlock(slide: Slide, block: Block, def: ComponentDef | und
       width: "26px", height: "26px",
       borderRadius: "6px",
       background: hexA(C.orange, 0.16),
-      color: "#ffb18d",
+      color: "#6ee7b7",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       flex: "0 0 26px",
     },
@@ -2031,7 +2031,7 @@ function renderSelectedBlock(slide: Slide, block: Block, def: ComponentDef | und
     el("div", {
       text: def?.name || block.type,
       style: {
-        fontSize: "12.5px", fontWeight: "650", color: "#fff5e8",
+        fontSize: "12.5px", fontWeight: "650", color: "#f4f4f3",
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
       },
     }),
@@ -2039,7 +2039,7 @@ function renderSelectedBlock(slide: Slide, block: Block, def: ComponentDef | und
       text: "Selected",
       style: {
         fontSize: "10px", fontWeight: "700",
-        color: "#7b6254", marginTop: "1px",
+        color: "#6b6b64", marginTop: "1px",
         letterSpacing: "0.06em", textTransform: "uppercase",
       },
     }),
@@ -2152,9 +2152,9 @@ function renderAdvancedDisclosure(slide: Slide, block: Block, def: ComponentDef 
       display: "inline-flex", alignItems: "center", gap: "6px",
       padding: "8px 0",
       background: "transparent",
-      color: "#8a7164",
+      color: "#7b7b73",
       border: "none",
-      borderTop: "1px solid rgba(255,245,232,0.05)",
+      borderTop: "1px solid rgba(244,244,243,0.05)",
       borderRadius: "0",
       cursor: "pointer",
       fontSize: "10px", fontWeight: "750",
@@ -2173,8 +2173,8 @@ function renderAdvancedDisclosure(slide: Slide, block: Block, def: ComponentDef 
   });
   toggle.appendChild(chev);
   toggle.appendChild(el("span", { text: "Advanced" }));
-  toggle.addEventListener("mouseenter", () => toggle.style.color = "#c8b39c");
-  toggle.addEventListener("mouseleave", () => toggle.style.color = "#8a7164");
+  toggle.addEventListener("mouseenter", () => toggle.style.color = "#b5b5af");
+  toggle.addEventListener("mouseleave", () => toggle.style.color = "#7b7b73");
   wrap.appendChild(toggle);
 
   if (!advancedOpen) return wrap;
@@ -2229,8 +2229,8 @@ function renderEmptyHint(): HTMLDivElement {
     style: {
       width: "30px", height: "30px",
       borderRadius: "7px",
-      background: "rgba(255,245,232,0.04)",
-      color: "#7b6254",
+      background: "rgba(244,244,243,0.04)",
+      color: "#6b6b64",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
     },
     html: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
@@ -2238,12 +2238,12 @@ function renderEmptyHint(): HTMLDivElement {
   wrap.appendChild(ico);
   wrap.appendChild(el("div", {
     text: "Nothing selected",
-    style: { fontSize: "12px", fontWeight: "600", color: "#c8b39c" },
+    style: { fontSize: "12px", fontWeight: "600", color: "#b5b5af" },
   }));
   wrap.appendChild(el("div", {
     text: "Click any block on the slide to inspect its properties.",
     style: {
-      fontSize: "11px", color: "#7b6254",
+      fontSize: "11px", color: "#6b6b64",
       lineHeight: "1.5", maxWidth: "200px",
     },
   }));
@@ -2286,7 +2286,7 @@ function fieldRow(label: string, control: HTMLElement, opts: { stacked?: boolean
         text: label,
         style: {
           fontSize: "10px", fontWeight: "650",
-          color: "#9a8273", marginBottom: "6px",
+          color: "#8b8b82", marginBottom: "6px",
           letterSpacing: "0.04em", textTransform: "uppercase",
         },
       }),
@@ -2307,7 +2307,7 @@ function fieldRow(label: string, control: HTMLElement, opts: { stacked?: boolean
       text: label,
       style: {
         fontSize: "11px", fontWeight: "500",
-        color: "#9a8273", lineHeight: "1.2",
+        color: "#8b8b82", lineHeight: "1.2",
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
       },
     }),
@@ -2405,7 +2405,7 @@ function colorField(label: string, value: string, cb: (v: string) => void): HTML
       borderRadius: "6px",
       position: "relative", flex: "0 0 26px",
       background: value,
-      border: "1px solid rgba(255,245,232,0.10)",
+      border: "1px solid rgba(244,244,243,0.10)",
       cursor: "pointer",
     },
   });
@@ -2500,7 +2500,7 @@ function imageField(label: string, value: string, cb: (v: string) => void): HTML
       width: "100%", aspectRatio: "16 / 9",
       borderRadius: "7px",
       background: hexA(C.muted, 0.06),
-      border: `1px solid rgba(255,245,232,0.08)`,
+      border: `1px solid rgba(244,244,243,0.08)`,
       backgroundImage:
         "linear-gradient(45deg, rgba(255,255,255,0.025) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.025) 75%)," +
         "linear-gradient(45deg, rgba(255,255,255,0.025) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.025) 75%)",
@@ -2519,7 +2519,7 @@ function imageField(label: string, value: string, cb: (v: string) => void): HTML
   } else {
     preview.appendChild(el("div", {
       text: "No image",
-      style: { color: "#7b6254", fontSize: "10.5px", fontWeight: "700",
+      style: { color: "#6b6b64", fontSize: "10.5px", fontWeight: "700",
                letterSpacing: "0.08em", textTransform: "uppercase" },
     }));
   }
@@ -2542,7 +2542,7 @@ function imageField(label: string, value: string, cb: (v: string) => void): HTML
         await apply(url);
       } catch (err) {
         statusEl.textContent = "Couldn't read that file.";
-        statusEl.style.color = "#ffb18d";
+        statusEl.style.color = "#6ee7b7";
       }
       e.target.value = "";  // allow re-uploading the same file
     },
@@ -2593,7 +2593,7 @@ function imageField(label: string, value: string, cb: (v: string) => void): HTML
   });
 
   const statusEl = el("div", {
-    style: { fontSize: "10.5px", color: "#7b6254",
+    style: { fontSize: "10.5px", color: "#6b6b64",
              lineHeight: "1.4", minHeight: "0" },
   });
   if (value && value.startsWith("data:")) {
@@ -2652,8 +2652,8 @@ function compactIconBtn(iconHtml: string, title: string, onClick: EventListener,
     style: {
       width: "100%", height: "30px",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
-      background: "rgba(255,245,232,0.04)",
-      color: danger ? "#ffb8a0" : "#d8c4ad",
+      background: "rgba(244,244,243,0.04)",
+      color: danger ? "#ffb8a0" : "#c5c5c0",
       border: "1px solid transparent",
       borderRadius: "7px",
       cursor: "pointer", padding: "0",
@@ -2664,17 +2664,17 @@ function compactIconBtn(iconHtml: string, title: string, onClick: EventListener,
   b.innerHTML = iconHtml;
   b.addEventListener("mouseenter", () => {
     b.style.background = danger
-      ? "rgba(255,95,46,0.16)"
-      : "rgba(255,245,232,0.10)";
+      ? "rgba(16,185,129,0.16)"
+      : "rgba(244,244,243,0.10)";
     b.style.borderColor = danger
-      ? "rgba(255,95,46,0.32)"
-      : "rgba(255,245,232,0.10)";
-    b.style.color = danger ? "#ffd0bd" : "#fff5e8";
+      ? "rgba(16,185,129,0.32)"
+      : "rgba(244,244,243,0.10)";
+    b.style.color = danger ? "#ffd0bd" : "#f4f4f3";
   });
   b.addEventListener("mouseleave", () => {
-    b.style.background = "rgba(255,245,232,0.04)";
+    b.style.background = "rgba(244,244,243,0.04)";
     b.style.borderColor = "transparent";
-    b.style.color = danger ? "#ffb8a0" : "#d8c4ad";
+    b.style.color = danger ? "#ffb8a0" : "#c5c5c0";
   });
   return b;
 }
@@ -2896,11 +2896,11 @@ const ICONS = {
 function mountShell(): void {
   document.body.style.margin = "0";
   document.body.style.padding = "0";
-  document.body.style.background = "#faf9f7";
+  document.body.style.background = "#f9f9f8";
   document.body.style.height = "100vh";
   document.body.style.overflow = "hidden";
   document.body.style.fontFamily = FONT;
-  document.body.style.color = "#fff5e8";
+  document.body.style.color = "#f4f4f3";
 
   // Global stylesheet: easing tokens, scrollbar polish, focus ring reset,
   // shared field control styles.
@@ -2920,10 +2920,10 @@ function mountShell(): void {
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: rgba(255,245,232,0.08);
+      background: rgba(244,244,243,0.08);
       border-radius: 4px;
     }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,245,232,0.18); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(244,244,243,0.18); }
     /* Slide list rows: subtle press feedback and hover lift. */
     [data-slide-row] {
       transition:
@@ -2946,8 +2946,8 @@ function mountShell(): void {
     .field-input {
       width: 100%;
       min-width: 0;
-      background: rgba(255,245,232,0.04);
-      color: #fff5e8;
+      background: rgba(244,244,243,0.04);
+      color: #f4f4f3;
       border: 1px solid transparent;
       border-radius: 6px;
       padding: 5px 8px;
@@ -2960,10 +2960,10 @@ function mountShell(): void {
         border-color 140ms var(--ease),
         box-shadow 140ms var(--ease);
     }
-    .field-input::placeholder { color: #6e5747; }
-    .field-input:hover { background: rgba(255,245,232,0.07); }
+    .field-input::placeholder { color: #5e5e57; }
+    .field-input:hover { background: rgba(244,244,243,0.07); }
     .field-input:focus, .field-input:focus-visible {
-      background: rgba(20,12,8,0.6);
+      background: rgba(14,14,14,0.6);
       border-color: ${hexA(C.orange, 0.45)};
       box-shadow: 0 0 0 3px ${hexA(C.orange, 0.10)};
       outline: none;
@@ -2983,17 +2983,17 @@ function mountShell(): void {
       background-position: right 8px center;
     }
     .field-select option {
-      background: #1a1108;
-      color: #fff5e8;
+      background: #121210;
+      color: #f4f4f3;
     }
     .field-check {
       width: 16px; height: 16px;
       flex: 0 0 16px;
       appearance: none; -webkit-appearance: none;
       margin: 0;
-      border: 1px solid rgba(255,245,232,0.22);
+      border: 1px solid rgba(244,244,243,0.22);
       border-radius: 4px;
-      background: rgba(255,245,232,0.04);
+      background: rgba(244,244,243,0.04);
       cursor: pointer;
       position: relative;
       transition:
@@ -3001,8 +3001,8 @@ function mountShell(): void {
         border-color 140ms var(--ease);
     }
     .field-check:hover {
-      background: rgba(255,245,232,0.10);
-      border-color: rgba(255,245,232,0.34);
+      background: rgba(244,244,243,0.10);
+      border-color: rgba(244,244,243,0.34);
     }
     .field-check:checked {
       background: ${C.orange};
@@ -3049,10 +3049,10 @@ function mountShell(): void {
       color: #57534e !important;
     }
     #leftPanel [data-slide-row] { border-color: transparent; }
-    #leftPanel [data-slide-row]:hover { background: #f7f5f3 !important; }
+    #leftPanel [data-slide-row]:hover { background: #f5f5f4 !important; }
     #leftPanel [data-slide-row][data-active="1"] {
-      background: #fff7ed !important;
-      border-color: #fdba74 !important;
+      background: #ecfdf5 !important;
+      border-color: #6ee7b7 !important;
     }
     #leftPanel [data-icon-btn] {
       background: rgba(255,255,255,0.94) !important;
@@ -3072,8 +3072,8 @@ function mountShell(): void {
     #rightPanel .field-input:hover { background: #f1f0ef !important; }
     #rightPanel .field-input:focus {
       background: #fff !important;
-      border-color: #fb923c !important;
-      box-shadow: 0 0 0 3px rgba(251,146,60,0.14) !important;
+      border-color: #10b981 !important;
+      box-shadow: 0 0 0 3px rgba(16,185,129,0.14) !important;
     }
     #rightPanel .field-select option { background: #fff; color: #292524; }
     #rightPanel .field-check {
@@ -3103,7 +3103,7 @@ function mountShell(): void {
         height: auto !important;
         min-height: 100%;
         overflow: visible !important;
-        background: #f5f1eb !important;
+        background: #f1f1ef !important;
       }
       html.slides-export body { padding: 24px; }
       html.slides-export #root { display: none !important; }
@@ -3113,7 +3113,7 @@ function mountShell(): void {
         height: 675px;
         margin: 0 auto 24px;
         overflow: hidden;
-        box-shadow: 0 12px 36px rgba(43, 28, 20, 0.16);
+        box-shadow: 0 12px 36px rgba(33, 33, 30, 0.16);
       }
       html.slides-export .print-slide:last-child { margin-bottom: 0; }
       html.slides-export .print-slide > .slide-frame { border-radius: 0 !important; }
@@ -3153,8 +3153,8 @@ function mountShell(): void {
     id: "leftPanel",
     style: {
       width: "208px", flex: "0 0 208px",
-      background: "rgba(20,12,8,0.94)",
-      borderRight: "1px solid rgba(255,245,232,0.06)",
+      background: "rgba(14,14,14,0.94)",
+      borderRight: "1px solid rgba(244,244,243,0.06)",
       display: "none",
       flexDirection: "column",
     },
@@ -3262,7 +3262,7 @@ function mountShell(): void {
   const stageWrap = el("div", {
     style: {
       flex: "1", position: "relative", overflow: "hidden",
-      background: "radial-gradient(circle at 50% 40%, #ffffff 0%, #f7f5f2 80%)",
+      background: "radial-gradient(circle at 50% 40%, #ffffff 0%, #f5f5f4 80%)",
     },
   });
   const stage = el("div", {
@@ -3270,7 +3270,7 @@ function mountShell(): void {
     style: {
       position: "absolute", top: "50%", left: "50%",
       width: "1200px", height: "675px",
-      boxShadow: "0 10px 28px rgba(43, 28, 20, 0.14)",
+      boxShadow: "0 10px 28px rgba(33, 33, 30, 0.14)",
       borderRadius: "18px", overflow: "hidden",
       transformOrigin: "center center",
     },
@@ -3286,8 +3286,8 @@ function mountShell(): void {
     id: "rightPanel",
     style: {
       width: "284px", flex: "0 0 284px",
-      background: "rgba(20,12,8,0.94)",
-      borderLeft: "1px solid rgba(255,245,232,0.06)",
+      background: "rgba(14,14,14,0.94)",
+      borderLeft: "1px solid rgba(244,244,243,0.06)",
       display: "none",
       flexDirection: "column",
     },
@@ -3308,8 +3308,8 @@ function mountShell(): void {
       transform: "translateX(-50%)",
       display: "flex", alignItems: "center", gap: "4px",
       padding: "6px",
-      background: "rgba(20, 12, 8, 0.72)",
-      border: "1px solid rgba(255, 245, 232, 0.08)",
+      background: "rgba(14, 14, 14, 0.72)",
+      border: "1px solid rgba(244, 244, 243, 0.08)",
       borderRadius: "999px",
       backdropFilter: "blur(14px) saturate(140%)",
       WebkitBackdropFilter: "blur(14px) saturate(140%)",
@@ -3327,7 +3327,7 @@ function mountShell(): void {
         width: size + "px", height: size + "px",
         display: "inline-flex", alignItems: "center", justifyContent: "center",
         background: variant === "accent" ? C.orange : "transparent",
-        color: variant === "accent" ? "#fff" : "#f5e7d6",
+        color: variant === "accent" ? "#fff" : "#e7e7e4",
         border: "none", borderRadius: "999px", cursor: "pointer", padding: "0",
       },
     });
@@ -3335,7 +3335,7 @@ function mountShell(): void {
     b.dataset.variant = variant;
     b.addEventListener("mouseenter", () => {
       b.style.background = b.dataset.variant === "accent"
-        ? C.orangeDark : "rgba(255,245,232,0.08)";
+        ? C.orangeDark : "rgba(244,244,243,0.08)";
     });
     b.addEventListener("mouseleave", () => {
       b.style.background = b.dataset.variant === "accent" ? C.orange : "transparent";
@@ -3353,7 +3353,7 @@ function mountShell(): void {
     "data-press": "1",
     style: {
       minWidth: "78px", height: "38px", padding: "0 14px",
-      background: "transparent", color: "#fff5e8",
+      background: "transparent", color: "#f4f4f3",
       border: "none", borderRadius: "999px",
       fontSize: "13px", fontWeight: "700",
       fontVariantNumeric: "tabular-nums", letterSpacing: "0.02em",
@@ -3364,13 +3364,13 @@ function mountShell(): void {
     onclick: (e: Event) => { e.stopPropagation(); toggleJumpMenu(); },
   });
   counter.addEventListener("mouseenter", () =>
-    counter.style.background = "rgba(255,245,232,0.08)");
+    counter.style.background = "rgba(244,244,243,0.08)");
   counter.addEventListener("mouseleave", () =>
     counter.style.background = "transparent");
 
   const divider = () => el("div", {
     style: { width: "1px", height: "22px", margin: "0 6px",
-             background: "rgba(255,245,232,0.12)" },
+             background: "rgba(244,244,243,0.12)" },
   });
 
   const undoBtn = iconBtn({ icon: ICONS.undo, title: "Undo (⌘Z)",
@@ -3407,8 +3407,8 @@ function mountShell(): void {
       width: "38px", height: "38px",
       display: "none",
       alignItems: "center", justifyContent: "center",
-      background: "rgba(20,12,8,0.55)", color: "#f5e7d6",
-      border: "1px solid rgba(255,245,232,0.10)",
+      background: "rgba(14,14,14,0.55)", color: "#e7e7e4",
+      border: "1px solid rgba(244,244,243,0.10)",
       borderRadius: "999px", cursor: "pointer", padding: "0",
       backdropFilter: "blur(14px) saturate(140%)",
       WebkitBackdropFilter: "blur(14px) saturate(140%)",
@@ -3431,8 +3431,8 @@ function mountShell(): void {
       display: "none",
       gridTemplateColumns: "repeat(6, 38px)",
       gap: "6px", padding: "10px",
-      background: "rgba(20,12,8,0.92)",
-      border: "1px solid rgba(255,245,232,0.10)",
+      background: "rgba(14,14,14,0.92)",
+      border: "1px solid rgba(244,244,243,0.10)",
       borderRadius: "14px",
       backdropFilter: "blur(14px) saturate(140%)",
       WebkitBackdropFilter: "blur(14px) saturate(140%)",
@@ -3482,7 +3482,7 @@ function mountShell(): void {
       stageScale = Math.min((w - 48) / 1200, (h - 120) / 675);
       stage.style.transform = `translate(-50%, -50%) scale(${stageScale})`;
       stage.style.borderRadius = "18px";
-      stage.style.boxShadow = "0 10px 28px rgba(43, 28, 20, 0.14)";
+      stage.style.boxShadow = "0 10px 28px rgba(33, 33, 30, 0.14)";
     }
   };
   shellRef.fit = fit;
@@ -3574,7 +3574,7 @@ function renderSlideThumbnail(slide: Slide, width = 156): HTMLDivElement {
       borderRadius: "6px", overflow: "hidden",
       background: (slide.background && slide.background.color) || C.page,
       position: "relative", pointerEvents: "none",
-      boxShadow: "0 1px 0 rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,245,232,0.04)",
+      boxShadow: "0 1px 0 rgba(0,0,0,0.4), inset 0 0 0 1px rgba(244,244,243,0.04)",
     },
   });
   frame.style.transform = `scale(${scale})`;
@@ -3593,9 +3593,9 @@ function thumbActionBtn(iconHtml: string, title: string, onClick: EventListener,
     style: {
       width: "22px", height: "22px", padding: "0",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
-      background: "rgba(20,12,8,0.78)",
-      color: danger ? "#ffb8a0" : "#f5e7d6",
-      border: "1px solid rgba(255,245,232,0.10)",
+      background: "rgba(14,14,14,0.78)",
+      color: danger ? "#ffb8a0" : "#e7e7e4",
+      border: "1px solid rgba(244,244,243,0.10)",
       borderRadius: "6px",
       cursor: "pointer",
       backdropFilter: "blur(8px)",
@@ -3605,11 +3605,11 @@ function thumbActionBtn(iconHtml: string, title: string, onClick: EventListener,
   b.innerHTML = iconHtml;
   b.addEventListener("mouseenter", () => {
     b.style.background = danger
-      ? "rgba(255,95,46,0.22)"
-      : "rgba(255,245,232,0.16)";
+      ? "rgba(16,185,129,0.22)"
+      : "rgba(244,244,243,0.16)";
   });
   b.addEventListener("mouseleave", () => {
-    b.style.background = "rgba(20,12,8,0.78)";
+    b.style.background = "rgba(14,14,14,0.78)";
   });
   return b;
 }
@@ -3634,8 +3634,8 @@ function toggleJumpMenu(): void {
       style: {
         width: "38px", height: "38px",
         borderRadius: "10px", border: "none",
-        background: active ? C.orange : "rgba(255,245,232,0.06)",
-        color: active ? "#fff" : "#f5e7d6",
+        background: active ? C.orange : "rgba(244,244,243,0.06)",
+        color: active ? "#fff" : "#e7e7e4",
         fontWeight: "800", fontSize: "13px",
         fontFamily: FONT, cursor: "pointer",
         fontVariantNumeric: "tabular-nums",
@@ -3647,9 +3647,9 @@ function toggleJumpMenu(): void {
       "background 160ms var(--ease), transform 120ms var(--ease)";
     if (!active) {
       b.addEventListener("mouseenter", () =>
-        b.style.background = "rgba(255,245,232,0.14)");
+        b.style.background = "rgba(244,244,243,0.14)");
       b.addEventListener("mouseleave", () =>
-        b.style.background = "rgba(255,245,232,0.06)");
+        b.style.background = "rgba(244,244,243,0.06)");
     }
     menu.appendChild(b);
   }
@@ -3684,7 +3684,7 @@ function toggleEdit(): void {
   const b = shellRef.editBtn;
   if (b) {
     b.style.background = editMode ? C.orange : "transparent";
-    b.style.color = editMode ? "#fff" : "#f5e7d6";
+    b.style.color = editMode ? "#fff" : "#e7e7e4";
     b.dataset.variant = editMode ? "accent" : "ghost";
     b.title = editMode ? "Done editing (E)" : "Edit (E)";
   }
@@ -3750,7 +3750,7 @@ function buildSlideSearchHeader(): HTMLDivElement {
   const header = el("div", {
     style: {
       padding: "9px 12px",
-      borderBottom: "1px solid rgba(255,245,232,0.05)",
+      borderBottom: "1px solid rgba(244,244,243,0.05)",
     },
   });
 
@@ -3761,7 +3761,7 @@ function buildSlideSearchHeader(): HTMLDivElement {
   });
   box.dataset.slideSearchBox = "1";
   box.appendChild(svgFromString(
-    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8a7164" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.3-4.3"/></svg>`));
+    `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7b7b73" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4.3-4.3"/></svg>`));
 
   const input = el("input", {
     type: "text",
@@ -3771,7 +3771,7 @@ function buildSlideSearchHeader(): HTMLDivElement {
       flex: "1",
       background: "transparent",
       border: "none", outline: "none",
-      color: "#fff5e8",
+      color: "#f4f4f3",
       fontSize: "12px", fontFamily: FONT,
       padding: "0", letterSpacing: "0",
     },
@@ -3817,7 +3817,7 @@ function buildSlideSearchHeader(): HTMLDivElement {
     style: {
       background: "transparent", border: "none",
       padding: "2px", margin: "0",
-      color: "#8a7164", cursor: "pointer",
+      color: "#7b7b73", cursor: "pointer",
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       borderRadius: "4px",
       opacity: slideSearch ? "1" : "0",
@@ -3828,11 +3828,11 @@ function buildSlideSearchHeader(): HTMLDivElement {
   });
   clear.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M6 18 18 6"/></svg>`;
   clear.addEventListener("mouseenter", () => {
-    clear.style.color = "#fff5e8";
-    clear.style.background = "rgba(255,245,232,0.08)";
+    clear.style.color = "#f4f4f3";
+    clear.style.background = "rgba(244,244,243,0.08)";
   });
   clear.addEventListener("mouseleave", () => {
-    clear.style.color = "#8a7164";
+    clear.style.color = "#7b7b73";
     clear.style.background = "transparent";
   });
   box.appendChild(clear);
@@ -3868,13 +3868,13 @@ function renderSlideList(): void {
     list.appendChild(el("div", {
       style: {
         padding: "24px 12px", textAlign: "center",
-        color: "#7b6254", fontSize: "11.5px", lineHeight: "1.4",
+        color: "#6b6b64", fontSize: "11.5px", lineHeight: "1.4",
       },
     }, [
       el("div", { text: "No slides match", style: { fontWeight: "600" }}),
       el("div", {
         text: `"${slideSearch}"`,
-        style: { marginTop: "4px", color: "#5b483b",
+        style: { marginTop: "4px", color: "#4e4e48",
                  fontStyle: "italic", fontSize: "10.5px",
                  whiteSpace: "nowrap", overflow: "hidden",
                  textOverflow: "ellipsis" },
@@ -3926,7 +3926,7 @@ function renderSlideList(): void {
       text: String(i + 1).padStart(2, "0"),
       style: {
         fontSize: "10px", fontWeight: "750",
-        color: active ? "#ffb18d" : "#6e5747",
+        color: active ? "#6ee7b7" : "#5e5e57",
         fontVariantNumeric: "tabular-nums",
         letterSpacing: "0.08em",
       },
@@ -3963,7 +3963,7 @@ function renderSlideList(): void {
         padding: "0 2px",
         fontSize: "11px",
         fontWeight: active ? "600" : "500",
-        color: active ? "#fff5e8" : "#a89082",
+        color: active ? "#f4f4f3" : "#999991",
         lineHeight: "1.3",
         whiteSpace: "nowrap", overflow: "hidden",
         textOverflow: "ellipsis",
@@ -3975,7 +3975,7 @@ function renderSlideList(): void {
     row.addEventListener("mouseenter", () => {
       actions.style.opacity = "1";
       actions.style.pointerEvents = "auto";
-      if (!active) row.style.background = "rgba(255,245,232,0.035)";
+      if (!active) row.style.background = "rgba(244,244,243,0.035)";
     });
     row.addEventListener("mouseleave", () => {
       actions.style.opacity = "0";

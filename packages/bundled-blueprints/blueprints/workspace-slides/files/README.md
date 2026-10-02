@@ -53,7 +53,7 @@ snapping code, the deck document and its undo history — is this blueprint's.
 
 ## Slide formats
 
-The deck is built in a clean, **branded corporate style** (an orange accent
+The deck is built in a clean, **branded corporate style** (an emerald accent
 palette on white slides) and supports two ready-made slide formats. Both live on the fixed
 `1200 × 675` reference canvas and are made entirely of normal editable
 blocks, so anything a template drops in can be moved, restyled, or deleted
@@ -61,9 +61,9 @@ afterward.
 
 ### 1. Title / cover slide (`makeTitleSlide()` in `client.js`)
 
-The orange opening slide.
+The emerald opening slide.
 
-- Full-bleed orange cover artwork (`background.coverOrange`).
+- Full-bleed emerald cover artwork (`background.coverOrange`).
 - White brand **logo** (a clean editable wordmark with an optional accent
   dot) at `x 36, y 56`, width `267`.
 - **Title** — Inter, white, ~58px, weight 700, at `x 33, y 197`, width
@@ -79,12 +79,12 @@ This is also what the seed deck's first slide and the server's
 The standard white content shell for every non-cover idea.
 
 - Pure white background, no inset surface, no shadow, no border.
-- **Eyebrow** (`sectionLabel`) — Ruby `#FF6633`, uppercase, SemiBold, at
+- **Eyebrow** (`sectionLabel`) — Ruby `#0F766E`, uppercase, SemiBold, at
   `x 36, y 35`. Optional; delete when not useful. Eyebrows are always Ruby.
 - **Headline** (`title`) — black `#000000`, ~28px, weight 600, at
   `x 35, y 76`, width `984`, max two lines, written as an assertion.
 - **Logo** — the brand wordmark (the `logo` component in its `dark`
-  variant: black wordmark + orange accent dot), at `x 1013, y 40`, sized
+  variant: black wordmark + emerald accent dot), at `x 1013, y 40`, sized
   via `scale: 0.62`.
 - **Content region** — body starts at `x 36, y 204`. The default narrative
   uses a constrained `760px` reading measure at 19px, weight 400,
@@ -106,8 +106,10 @@ The standard white content shell for every non-cover idea.
   canonical reference for the two styles; the server mints block ids on
   insert.
 
-Brand style tokens worth reusing: Ruby `#FF6633`, Tangerine `#F6821F`,
-Mango `#FBAD41`, black `#000000`, muted gray `#747474`, Inter throughout.
+Brand style tokens worth reusing: Ruby `#0F766E`, Tangerine `#047857`,
+Mango `#34D399`, black `#000000`, muted gray `#747474`, Inter throughout.
+The names Ruby, Tangerine and Mango are kept so saved decks and agent-written `tone` values
+stay valid; in the pentacles palette they are teal, emerald and light emerald.
 Slide-facing component controls are intentionally limited to this palette
 and the approved 400/500/600/700 weights. Cards and diagram boxes default
 to flat white surfaces, thin `#E5E5E5` rules, minimal corner radii, and no
@@ -120,7 +122,7 @@ controlled 10px/8px item spacing.
 ## Initial blueprint
 
 New Gadget instances start from the current four-slide overview of the
-builder: the orange “Compose your deck or build with agent” cover, a six-part
+builder: the emerald “Compose your deck or build with agent” cover, a six-part
 feature overview, a connected-charts example showing how an agent can use an
 approved internal system of record as a data source, and a two-path get-started
 slide for editing directly or asking the agent. The complete blueprint
@@ -176,7 +178,7 @@ Components defined in `COMPONENTS` but intentionally **not** in the
 palette — they're brand marks used by the seed deck only:
 
 `gadgetsMark`, `logo`. The `logo` component renders a clean editable
-wordmark (`text` prop, default `Workspace`) with an optional orange accent
+wordmark (`text` prop, default `Workspace`) with an optional emerald accent
 dot (`accentDot` prop); change the wordmark to rebrand the deck. They still
 render anywhere a block of that type appears; they just aren't offered as
 building blocks.
@@ -230,7 +232,7 @@ Press **E** (or click the pencil) to enter edit mode. Edit mode reveals:
   block is contentEditable; press Enter or click away to save. While
   dragging, the block softly snaps when its left / right / center edges
   line up with another block's edges or center, or with the slide bounds
-  / center; a thin orange guide line shows which alignment is locked.
+  / center; a thin emerald guide line shows which alignment is locked.
   Hold **Alt / Option** while dragging to disable snapping entirely.
 
 Press **F** to enter presentation mode (chrome hidden, stage fills the
@@ -299,12 +301,12 @@ All inspector inputs (text, number, select, textarea, checkbox, color)
 share a small set of CSS classes defined in `mountShell`:
 
 - `.field-input` — the base look (subtle dark fill, transparent border,
-  orange ring on focus). Applied to `<input>`, `<select>` and
+  emerald ring on focus). Applied to `<input>`, `<select>` and
   `<textarea>`.
 - `.field-textarea` — adds the multiline sizing on top of `.field-input`.
 - `.field-select` — adds an inline SVG chevron and resets the native
   `appearance` so the select matches text inputs.
-- `.field-check` — a custom-painted checkbox (orange when checked).
+- `.field-check` — a custom-painted checkbox (emerald when checked).
 
 `fieldRow(label, control, { stacked })` lays out a label + control as a
 two-column grid by default; pass `{ stacked: true }` for full-width
@@ -346,7 +348,7 @@ need to touch styles when adding a new field type.
   via three helpers: `computeSnapTargets` (gathers x/y edges + centers from
   every other non-arrow block on the slide, plus slide bounds + center),
   `applySnap` (independently snaps each axis to the nearest target within
-  `SNAP_THRESHOLD` slide-units), and `drawSnapGuides` (renders thin orange
+  `SNAP_THRESHOLD` slide-units), and `drawSnapGuides` (renders thin emerald
   guide lines into a `[data-snap-layer]` div inside the slide frame). The
   snap layer is torn down on `pointerup`. Blocks without explicit `w`/`h`
   (titles, pills, etc.) are measured via `offsetWidth/Height` so their
@@ -362,7 +364,7 @@ need to touch styles when adding a new field type.
   show. Drag-to-reorder is disabled when a filter is active since the
   visible positions don't map 1:1 to absolute deck indices.
 - Reordering uses native HTML5 drag-and-drop (`draggable="true"` +
-  `dragstart`/`dragover`/`drop`). A floating 2px orange line shows the
+  `dragstart`/`dragover`/`drop`). A floating 2px emerald line shows the
   drop position; the actual move is done optimistically on the client and
   then sent to the server via `gadget.moveSlide`.
 - The sandbox prohibits modal dialogs and external fetches; all asset

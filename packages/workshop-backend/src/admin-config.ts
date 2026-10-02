@@ -11,6 +11,7 @@
 import { AmbientGatekeeperMode, BannerConfig, BlueprintBinding, BlueprintMetadata, BlueprintOutput, DEFAULT_BANNER_COLOR, OutputFormatOffer, isAmbientGatekeeperMode, isBannerColor, isOutputIcon } from "@gadgets/workshop-shared/api";
 import { SupportedResource } from "@gadgets/workshop-shared/gatekeeper";
 import { ADMIN_CONFIG_KEY, BlueprintKvEnv, readBlueprintKvRecord, sanitizeBlueprintOutput } from "./blueprint-archive.js";
+import { BRANDING_ACCENT_COLOR, BRANDING_SITE_NAME } from "@gadgets/workshop-shared/branding";
 
 export type AdminConfig = {
   /**
@@ -88,12 +89,12 @@ export type FormatCuration = {
 export const DEFAULT_ADMIN_CONFIG: AdminConfig = {
   signupsEnabled: true,
   userSearchEnabled: false,
-  siteName: "",
+  siteName: BRANDING_SITE_NAME,
   siteLogoConfigured: false,
   instanceInstructions: "",
   announcement: "",
   banner: { text: "", color: DEFAULT_BANNER_COLOR },
-  accentColor: "",
+  accentColor: BRANDING_ACCENT_COLOR,
   disabledResources: {},
   disabledGatekeepers: [],
   ambientGatekeeperModes: {},
@@ -314,7 +315,7 @@ export function normalizeAdminConfig(p: Partial<AdminConfig>): AdminConfig {
     userSearchEnabled: typeof p.userSearchEnabled === "boolean"
       ? p.userSearchEnabled
       : !signupsEnabled,
-    siteName: typeof p.siteName === "string" ? p.siteName : "",
+    siteName: typeof p.siteName === "string" && p.siteName ? p.siteName : DEFAULT_ADMIN_CONFIG.siteName,
     siteLogoConfigured: typeof p.siteLogoConfigured === "boolean" ? p.siteLogoConfigured : false,
     instanceInstructions: typeof p.instanceInstructions === "string" ? p.instanceInstructions : "",
     announcement: typeof p.announcement === "string" ? p.announcement : "",
@@ -322,7 +323,7 @@ export function normalizeAdminConfig(p: Partial<AdminConfig>): AdminConfig {
       text: typeof p.banner?.text === "string" ? p.banner.text : "",
       color: isBannerColor(p.banner?.color) ? p.banner!.color : DEFAULT_BANNER_COLOR,
     },
-    accentColor: typeof p.accentColor === "string" ? p.accentColor : "",
+    accentColor: typeof p.accentColor === "string" && p.accentColor ? p.accentColor : DEFAULT_ADMIN_CONFIG.accentColor,
     disabledResources,
     disabledGatekeepers: strings(p.disabledGatekeepers).map(v => v.toLowerCase()),
     ambientGatekeeperModes,

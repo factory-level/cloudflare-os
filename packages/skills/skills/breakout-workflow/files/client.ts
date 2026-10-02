@@ -1,4 +1,5 @@
 // Shows each built-in fixture's evidence chain. `gadget` is the stub the Workshop injects.
+import { THEME_CSS } from "./lib/theme.ts";
 type FixtureRun = {
   name: string;
   result: { event: string; action: string; evidence: Array<{ step: number; kind: string; summary: string }> };
@@ -8,20 +9,19 @@ type ScheduledRun = { runId: string; scheduledTime: number; runs: FixtureRun[]; 
 
 declare const gadget: { runFixtures(): Promise<FixtureRun[]>; scheduledRuns(limit?: number): Promise<ScheduledRun[]> };
 
+const theme = document.createElement("style");
+theme.textContent = THEME_CSS;
+document.head.append(theme);
 const runs = await gadget.runFixtures();
 const root = document.createElement("div");
-root.style.cssText = "font: 14px system-ui; margin: 16px";
 for (const run of runs) {
-  const heading = document.createElement("h3");
+  const heading = document.createElement("h2");
   heading.textContent = `${run.name} -- ${run.result.event} -> ${run.result.action}`;
-  heading.style.margin = "16px 0 4px";
   const table = document.createElement("table");
-  table.style.borderCollapse = "collapse";
   const header = table.insertRow();
   for (const label of ["#", "Step", "Evidence"]) {
     const cell = document.createElement("th");
     cell.textContent = label;
-    cell.style.cssText = "text-align: left; padding: 4px 12px";
     header.append(cell);
   }
   for (const step of run.result.evidence) {
@@ -29,7 +29,6 @@ for (const run of runs) {
     for (const value of [String(step.step), step.kind, step.summary]) {
       const cell = row.insertCell();
       cell.textContent = value;
-      cell.style.padding = "4px 12px";
     }
   }
   root.append(heading, table);
@@ -37,10 +36,9 @@ for (const run of runs) {
 
 // Scheduled runs arrive while the gadget is open, so the section refreshes itself. A failed refresh
 // keeps what was last shown and says so.
-const scheduledHeading = document.createElement("h3");
-scheduledHeading.style.margin = "24px 0 4px";
+const scheduledHeading = document.createElement("h2");
 const scheduledStatus = document.createElement("p");
-scheduledStatus.style.cssText = "margin: 0 0 8px; opacity: 0.7";
+scheduledStatus.className = "muted";
 const scheduledList = document.createElement("div");
 root.append(scheduledHeading, scheduledStatus, scheduledList);
 

@@ -1,9 +1,16 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { vitestTask } from '@gadgets/scripts/vitest-task'
+import { BRANDING_SITE_NAME } from '@gadgets/workshop-shared/branding'
+
+// Fork: the HTML title shows before React sets document.title, so brand it at build time too.
+const brandedTitle: Plugin = {
+  name: 'branded-title',
+  transformIndexHtml: html => html.replace(/<title>[^<]*<\/title>/, `<title>${BRANDING_SITE_NAME}</title>`),
+}
 
 // `dist/` is this package's own build output, excluded from the inputs of the bundle and test
 // tasks: vp declines to cache a task that reads a path it also wrote. Package-relative rather than
@@ -75,6 +82,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       tsconfigPaths(),
+      brandedTitle,
     ],
     server: {
       port: 3000,

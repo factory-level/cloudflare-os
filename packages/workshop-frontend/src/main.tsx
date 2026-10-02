@@ -180,6 +180,8 @@ let currentStub = startConnection();
 
 const router = createRouter()
 applyStoredThemeMode()
+// Paint the branded accent before the server config arrives (fork: pentacles branding).
+applyAccentColor('')
 
 function AppWithConnection() {
   const [rpcState, setRpcState] = useState<{stub: RpcStub<PublicApi>; connectionLost: boolean}>({

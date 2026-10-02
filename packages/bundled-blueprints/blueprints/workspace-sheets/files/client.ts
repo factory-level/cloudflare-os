@@ -74,8 +74,8 @@ style.textContent = PROMPT_STYLES + `
   --text:   #1d1d20;
   --muted:  #6b6b73;
   --faint:  #9a9aa2;
-  --accent: #e1632e;
-  --accent-soft: rgba(225,99,46,0.12);
+  --accent: #047857;
+  --accent-soft: rgba(4,120,87,0.12);
   --ok:#1f9d77; --warn:#b9842f; --bad:#c4566a;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -88,7 +88,7 @@ html, body {
   font-size: 13.5px; -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
-::selection { background: rgba(225,99,46,0.22); }
+::selection { background: rgba(4,120,87,0.22); }
 * { scrollbar-width: thin; scrollbar-color: rgba(20,20,25,0.22) transparent; }
 *::-webkit-scrollbar { width: 11px; height: 11px; }
 *::-webkit-scrollbar-thumb { background: rgba(20,20,25,0.22); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
@@ -138,7 +138,7 @@ html, body {
   transition: all .14s var(--ease-out); font-size: 12.5px; font-weight: 600; }
 .icon-btn:hover { background: var(--surface-2); border-color: var(--line); color: var(--text); }
 .icon-btn:active { transform: scale(0.94); }
-.icon-btn.active { background: var(--accent-soft); border-color: rgba(225,99,46,0.35); color: var(--accent); }
+.icon-btn.active { background: var(--accent-soft); border-color: rgba(4,120,87,0.35); color: var(--accent); }
 .icon-btn svg { width: 16px; height: 16px; }
 .icon-btn[disabled] { opacity: .4; pointer-events: none; }
 
@@ -206,7 +206,7 @@ table.grid th, table.grid td { padding: 0; margin: 0; }
 .grid th.colhead { top: 0; z-index: 4; height: 22px; }
 .grid th.rowhead { left: 0; z-index: 4; }
 .grid th.corner { top: 0; left: 0; z-index: 6; width: 44px; }
-.grid th.colhead.hl, .grid th.rowhead.hl { background: #f0dccf; color: var(--accent); }
+.grid th.colhead.hl, .grid th.rowhead.hl { background: #d1fae5; color: var(--accent); }
 .grid th.colhead.full, .grid th.rowhead.full { background: var(--accent); color: #fff; }
 
 .grid td.cell { border-right: 1px solid var(--grid-line); border-bottom: 1px solid var(--grid-line);
