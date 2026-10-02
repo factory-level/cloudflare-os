@@ -6,12 +6,15 @@ import { validateRpc } from "capnweb-validate";
 import type { ApprovalQueue } from "@gadgets/workshop-shared/gatekeeper";
 import type { LabApi } from "./lab-api";
 import type {
+  CatalogEntry,
   Comparison,
   Portfolio,
   Revision,
   RevisionDiff,
   RevisionFile,
+  RevisionCatalog,
   RevisionLineage,
+  RevisionRef,
   Run,
   RunQuery,
   Study,
@@ -80,6 +83,53 @@ export class RevisionLineageSession extends RpcTarget implements RevisionLineage
 
   async runs(_number: number, _query?: RunQuery): Promise<Run[]> {
     throw new Error(NOT_AVAILABLE);
+  }
+}
+
+@validateRpc()
+export class RevisionCatalogSession extends RpcTarget implements RevisionCatalog {
+  readonly #api: LabApi;
+  readonly #queue: RpcStub<ApprovalQueue>;
+
+  constructor(api: LabApi, queue: RpcStub<ApprovalQueue>) {
+    super();
+    this.#api = api;
+    this.#queue = queue;
+  }
+
+  [Symbol.dispose](): void { this.#queue[Symbol.dispose](); }
+
+  async list(kind?: RevisionRef["kind"]): Promise<CatalogEntry[]> {
+    const entries = await this.#api.catalog(kind);
+    const shown = entries.slice(0, MAX_FILES_LISTED).map((e) => `${e.kind}/${e.name}@${e.latest.number}`);
+    await this.#queue.authorizeObservation({
+      title: kind ? `List published ${kind}s` : "List everything published to the lab",
+      description: entries.length
+        ? `Read ${entries.length} published artifacts: ${shown.join(", ")}` +
+          (entries.length > shown.length ? ", ..." : "") + "."
+        : "Nothing is published.",
+    });
+    return entries;
+  }
+
+  async revisions(kind: RevisionRef["kind"], name: string): Promise<Revision[]> {
+    const revisions = await this.#api.listRevisions(kind, name);
+    await this.#queue.authorizeObservation({
+      title: `List revisions of ${kind}/${name}`,
+      description: `Read ${revisions.length} published revisions of ${kind}/${name}.`,
+    });
+    return revisions;
+  }
+
+  async files(kind: RevisionRef["kind"], name: string, number: number): Promise<RevisionFile[]> {
+    const files = await this.#api.revisionFiles(kind, name, number);
+    const listed = files.slice(0, MAX_FILES_LISTED).map((f) => f.path).join(", ");
+    await this.#queue.authorizeObservation({
+      title: `Read the files of ${kind}/${name}@${number}`,
+      description: `Read ${files.length} files of ${kind}/${name}@${number}: ${listed}` +
+        (files.length > MAX_FILES_LISTED ? ", ..." : "") + ".",
+    });
+    return files;
   }
 }
 

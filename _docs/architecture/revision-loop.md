@@ -9,6 +9,7 @@ covers:
   - packages/skills/skills/momentum-signal/files/revision.json
   - packages/skills/skills/breakout-workflow/files/revision.json
   - packages/gatekeeper-lab
+  - packages/skills/skills/lab-catalog
 touchpoints:
   - .gitignore
   - scripts/run-dev-server.ts
@@ -20,7 +21,7 @@ updated: 2026-10-02
 
 ## Overview
 
-The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. Binding revisions to running Gadgets, run records, views, and branding are not built in the fork.
+The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. The `lab-catalog` skill is a view of everything published, read through the connector. Binding revisions to running Gadgets, run records, views, and branding are not built in the fork.
 
 ## Components
 
@@ -33,7 +34,8 @@ The `gadgets` command line and its MCP server can qualify a skill directory and 
 | `packages/gatekeeper-lab/src/lab.ts` | The lab connector: connect page, vendor, account, verifier, and one read-only gatekeeper per bound resource |
 | `packages/gatekeeper-lab/src/lab-api.ts` | HTTP client for the lab. Signs in as the deployment's service, names the connection and person on every read, and maps the lab's codes to errors |
 | `packages/gatekeeper-lab/src/lab-session.ts` | The sessions a Gadget holds. Each read is authorized as an observation before it returns |
-| `packages/gatekeeper-lab/src/resources.ts` | The two bindable resource URLs and their parsing |
+| `packages/gatekeeper-lab/src/resources.ts` | The three bindable resource URLs and their parsing |
+| `packages/skills/skills/lab-catalog` | A view Gadget: everything published, grouped by kind, then each artifact's revisions and studies, then a revision's files |
 | `packages/gatekeeper-lab/src/types.d.ts` | The agent-facing interfaces, including those not served yet |
 | `packages/gadgets-cli/src/bin.ts`, `mcp.ts` | `gadgets qualify`, `gadgets publish`, and the `qualify_skill` and `publish_revision` tools (also covered by [Local Skill Push](local-skill-push.md)) |
 
@@ -57,10 +59,11 @@ Publish qualifies first and stops without a request when any check failed. Other
 
 A deployment signs in to the lab with one Cloudflare Access service token. Connecting the lab makes a lab connection for the person connecting (`POST /connections`), named by the Access sign-in header on the connect page. A typed email is accepted only where `LAB_ALLOW_TYPED_EMAIL` is `true`. The account stores the connection's ID and the person's email.
 
-A bound resource is one of:
+A bound resource is one of the following. Resource URLs use the fixed origin `https://lab.invalid`, which names a resource rather than a host, so a blueprint that declares a lab binding works against any deployment; requests go to `LAB_URL`.
 
-- `<LAB_URL>/revisions/<kind>/<name>`, served by `RevisionLineageGatekeeper` as `RevisionLineage`: `list()`, `get(number)`, and `files(number)`.
-- `<LAB_URL>/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`.
+- `https://lab.invalid/revisions`, served by `RevisionCatalogGatekeeper` as `RevisionCatalog`: `list(kind?)` from the lab's `GET /revisions`, `revisions(kind, name)`, and `files(kind, name, number)`.
+- `https://lab.invalid/revisions/<kind>/<name>`, served by `RevisionLineageGatekeeper` as `RevisionLineage`: `list()`, `get(number)`, and `files(number)`.
+- `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`.
 
 Each read sends `x-lab-connection` and `x-lab-on-behalf-of`, waits for the lab's answer, then calls `authorizeObservation` before returning. A refused read records no observation.
 

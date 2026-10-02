@@ -30,8 +30,10 @@ import type {
   SupportedResource,
   VendorDescription,
 } from "@gadgets/workshop-shared/gatekeeper";
+import type { CatalogConfiguratorRpc } from "./configurator/catalog-configurator-types";
 import type { RevisionsConfiguratorRpc } from "./configurator/revisions-configurator-types";
 import type { StudyConfiguratorRpc } from "./configurator/study-configurator-types";
+import CATALOG_CONFIGURATOR_HTML from "./generated/catalog-configurator-ui.txt";
 import REVISIONS_CONFIGURATOR_HTML from "./generated/revisions-configurator-ui.txt";
 import STUDY_CONFIGURATOR_HTML from "./generated/study-configurator-ui.txt";
 import {
@@ -44,16 +46,18 @@ import {
   readLabConfig,
   revoke as revokeConnection,
 } from "./lab-api";
-import { RevisionLineageSession, StudyReaderSession } from "./lab-session";
+import { RevisionCatalogSession, RevisionLineageSession, StudyReaderSession } from "./lab-session";
 import {
+  CATALOG_RESOURCE,
   KINDS,
   type LabResource,
   parseResourceUrl,
   resourceUrl,
-  revisionsResource,
-  studyResource,
+  REVISIONS_RESOURCE,
+  STUDY_RESOURCE,
+  SUPPORTED_RESOURCES,
 } from "./resources";
-import type { RevisionLineage, RevisionRef, StudyReader } from "./types";
+import type { RevisionCatalog, RevisionLineage, RevisionRef, StudyReader } from "./types";
 import TYPES_CODE from "./types.txt";
 
 const VENDOR_ID = "lab";
@@ -91,8 +95,7 @@ function requireConfig(env: Env): LabConfig {
 }
 
 function supportedResources(env: Env): SupportedResource[] {
-  const config = readLabConfig(env);
-  return config ? [revisionsResource(config.url), studyResource(config.url)] : [];
+  return readLabConfig(env) ? SUPPORTED_RESOURCES : [];
 }
 
 /**
@@ -352,12 +355,15 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
   }
 
   async startResourceConfigurator(resourceUrlPattern: string): Promise<ResourceConfiguratorFrame> {
-    const { url } = requireConfig(this.env);
-    if (resourceUrlPattern === revisionsResource(url).urlPattern) {
-      return { iframeHtml: REVISIONS_CONFIGURATOR_HTML, ui: new RpcStub(new RevisionsConfiguratorUI(url)) };
+    requireConfig(this.env);
+    if (resourceUrlPattern === CATALOG_RESOURCE.urlPattern) {
+      return { iframeHtml: CATALOG_CONFIGURATOR_HTML, ui: new RpcStub(new CatalogConfiguratorUI()) };
     }
-    if (resourceUrlPattern === studyResource(url).urlPattern) {
-      return { iframeHtml: STUDY_CONFIGURATOR_HTML, ui: new RpcStub(new StudyConfiguratorUI(url)) };
+    if (resourceUrlPattern === REVISIONS_RESOURCE.urlPattern) {
+      return { iframeHtml: REVISIONS_CONFIGURATOR_HTML, ui: new RpcStub(new RevisionsConfiguratorUI()) };
+    }
+    if (resourceUrlPattern === STUDY_RESOURCE.urlPattern) {
+      return { iframeHtml: STUDY_CONFIGURATOR_HTML, ui: new RpcStub(new StudyConfiguratorUI()) };
     }
     throw new Error(`Unsupported resource configurator type: ${resourceUrlPattern}`);
   }
@@ -366,21 +372,27 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
     class: DurableObjectClass<Gatekeeper<any>>;
     resource: SupportedResource;
   }> {
-    const config = requireConfig(this.env);
-    const resource = parseResourceUrl(config.url, url);
+    requireConfig(this.env);
+    const resource = parseResourceUrl(url);
     if (!resource) throw new Error(`Not a trading lab resource: ${url}`);
     const { userObjectId } = this.ctx.props;
+    if (resource.type === "catalog") {
+      return {
+        class: this.ctx.exports.RevisionCatalogGatekeeper({ props: { userObjectId } }),
+        resource: CATALOG_RESOURCE,
+      };
+    }
     if (resource.type === "revisions") {
       return {
         class: this.ctx.exports.RevisionLineageGatekeeper({
           props: { userObjectId, kind: resource.kind, name: resource.name },
         }),
-        resource: revisionsResource(config.url),
+        resource: REVISIONS_RESOURCE,
       };
     }
     return {
       class: this.ctx.exports.StudyReaderGatekeeper({ props: { userObjectId, studyId: resource.studyId } }),
-      resource: studyResource(config.url),
+      resource: STUDY_RESOURCE,
     };
   }
 
@@ -422,13 +434,14 @@ export interface LabVerifierApi extends GatekeeperUserVerifier {
 export class LabVerifier extends WorkerEntrypoint<Env, LabUserProps> implements LabVerifierApi {
   async canRead(url: string): Promise<boolean> {
     const config = requireConfig(this.env);
-    const resource = parseResourceUrl(config.url, url);
+    const resource = parseResourceUrl(url);
     if (!resource) return false;
     const account = this.ctx.exports.UserAccount.get(
       this.ctx.exports.UserAccount.idFromString(this.ctx.props.userObjectId));
     const api = new LabApi(config, () => account.getActing());
     try {
-      if (resource.type === "revisions") await api.listRevisions(resource.kind, resource.name);
+      if (resource.type === "catalog") await api.catalog();
+      else if (resource.type === "revisions") await api.listRevisions(resource.kind, resource.name);
       else await api.getStudy(resource.studyId);
       return true;
     } catch (error) {
@@ -445,16 +458,17 @@ export class LabVerifier extends WorkerEntrypoint<Env, LabUserProps> implements 
 // Configurators
 
 @validateRpc()
-class RevisionsConfiguratorUI extends RpcTarget implements RevisionsConfiguratorRpc {
-  readonly #labUrl: string;
-  constructor(labUrl: string) {
-    super();
-    this.#labUrl = labUrl;
+class CatalogConfiguratorUI extends RpcTarget implements CatalogConfiguratorRpc {
+  async resourceUrl(): Promise<string> {
+    return resourceUrl({ type: "catalog" });
   }
+}
 
+@validateRpc()
+class RevisionsConfiguratorUI extends RpcTarget implements RevisionsConfiguratorRpc {
   async resourceUrl(kind: string, name: string): Promise<string> {
-    const url = resourceUrl(this.#labUrl, { type: "revisions", kind: kind as RevisionRef["kind"], name });
-    if (!parseResourceUrl(this.#labUrl, url)) {
+    const url = resourceUrl({ type: "revisions", kind: kind as RevisionRef["kind"], name });
+    if (!parseResourceUrl(url)) {
       throw new Error(`Choose one of ${KINDS.join(", ")} and a lowercase name of letters, digits, ` +
         "and hyphens.");
     }
@@ -464,15 +478,9 @@ class RevisionsConfiguratorUI extends RpcTarget implements RevisionsConfigurator
 
 @validateRpc()
 class StudyConfiguratorUI extends RpcTarget implements StudyConfiguratorRpc {
-  readonly #labUrl: string;
-  constructor(labUrl: string) {
-    super();
-    this.#labUrl = labUrl;
-  }
-
   async resourceUrl(studyId: string): Promise<string> {
-    const url = resourceUrl(this.#labUrl, { type: "study", studyId: studyId.trim() });
-    if (!parseResourceUrl(this.#labUrl, url)) throw new Error("A study ID looks like stu_0001.");
+    const url = resourceUrl({ type: "study", studyId: studyId.trim() });
+    if (!parseResourceUrl(url)) throw new Error("A study ID looks like stu_0001.");
     return url;
   }
 }
@@ -480,6 +488,7 @@ class StudyConfiguratorUI extends RpcTarget implements StudyConfiguratorRpc {
 // ---------------------------------------------------------------------------
 // Gatekeepers: one per bound resource. Both are read-only.
 
+type RevisionCatalogProps = LabUserProps;
 type RevisionLineageProps = LabUserProps & { kind: RevisionRef["kind"]; name: string };
 type StudyReaderProps = LabUserProps & { studyId: string };
 
@@ -495,7 +504,7 @@ abstract class LabGatekeeper<Props extends LabUserProps, Session> extends Durabl
   }
 
   protected url(): string {
-    return resourceUrl(requireConfig(this.env).url, this.resource());
+    return resourceUrl(this.resource());
   }
 
   abstract startSession(approvalQueue: RpcStub<ApprovalQueue>): Promise<Session>;
@@ -517,6 +526,28 @@ abstract class LabGatekeeper<Props extends LabUserProps, Session> extends Durabl
   async applyAction(_action: number, _cache: RpcStub<GitCache>): Promise<void> { throw new Error(READ_ONLY); }
   async rejectAction(_action: number): Promise<void> { throw new Error(READ_ONLY); }
   async revertAction(_action: number): Promise<void> { throw new Error(READ_ONLY); }
+}
+
+@validateRpc()
+export class RevisionCatalogGatekeeper extends LabGatekeeper<RevisionCatalogProps, RevisionCatalog>
+    implements Gatekeeper<RevisionCatalog> {
+  protected resource(): LabResource {
+    return { type: "catalog" };
+  }
+
+  async describe(): Promise<ResourceDescription> {
+    return {
+      url: this.url(),
+      title: "Trading lab catalog",
+      snippet: "Read everything published to the lab, every revision, and their files.",
+      suggestedBindingName: "LAB_CATALOG",
+      tsType: "RevisionCatalog",
+    };
+  }
+
+  async startSession(approvalQueue: RpcStub<ApprovalQueue>): Promise<RevisionCatalog> {
+    return new RevisionCatalogSession(this.api(), approvalQueue.dup());
+  }
 }
 
 @validateRpc()

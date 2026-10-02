@@ -2,7 +2,7 @@
 // every read also names the connection it acts through and the person who made it, and the lab
 // refuses once that connection is revoked.
 
-import type { Revision, RevisionFile, RevisionRef, Study } from "./types";
+import type { CatalogEntry, Revision, RevisionFile, RevisionRef, Study } from "./types";
 
 /** Deployment configuration read from the Worker environment. */
 export type LabConfig = {
@@ -138,6 +138,18 @@ export class LabApi {
   /** Builds a URL under the lab from path segments, each escaped. */
   url(...segments: (string | number)[]): string {
     return `${this.#config.url}/${segments.map((s) => encodeURIComponent(String(s))).join("/")}`;
+  }
+
+  async catalog(kind?: string): Promise<CatalogEntry[]> {
+    const acting = await this.#acting();
+    const url = this.url("revisions") + (kind === undefined ? "" : `?kind=${encodeURIComponent(kind)}`);
+    const body = await labRequest<{
+      artifacts: { kind: RevisionRef["kind"]; name: string; revisions: number; latest: LabRevisionRecord }[];
+    }>(this.#config, "GET", url, actingHeaders(acting));
+    return body.artifacts.map((artifact) => {
+      const { studies: _, ...latest } = toRevision(artifact.latest, []);
+      return { kind: artifact.kind, name: artifact.name, revisions: artifact.revisions, latest };
+    });
   }
 
   async listRevisions(kind: string, name: string): Promise<Revision[]> {

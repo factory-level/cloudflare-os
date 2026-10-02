@@ -21,6 +21,16 @@ export type Revision = RevisionRef & {
   studies: { studyId: string; label: string }[];
 };
 
+/** One published artifact and its newest revision. */
+export type CatalogEntry = {
+  kind: RevisionRef["kind"];
+  name: string;
+  /** How many revisions of this name are published. */
+  revisions: number;
+  /** The highest-numbered revision. Its `studies` are not listed here; read them with `revisions()`. */
+  latest: Omit<Revision, "studies">;
+};
+
 /** One file of a revision's content. */
 export type RevisionFile = {
   /** Path inside the revision, e.g. `"lib/workflow.ts"`. */
@@ -267,6 +277,21 @@ export interface RevisionLineage {
    * Not available yet: always throws `"Not available yet"`.
    */
   runs(number: number, query?: RunQuery): Promise<Run[]>;
+}
+
+/** Everything published to the lab, read-only: for inventory views. */
+export interface RevisionCatalog {
+  /**
+   * Every published artifact, ordered by kind then name, each with its newest revision. `kind`
+   * limits the list to one kind.
+   */
+  list(kind?: RevisionRef["kind"]): Promise<CatalogEntry[]>;
+
+  /** All published revisions of one artifact, lowest number first, with the studies that use each. */
+  revisions(kind: RevisionRef["kind"], name: string): Promise<Revision[]>;
+
+  /** The files of one revision. Throws if that revision was never published. */
+  files(kind: RevisionRef["kind"], name: string, number: number): Promise<RevisionFile[]>;
 }
 
 /**

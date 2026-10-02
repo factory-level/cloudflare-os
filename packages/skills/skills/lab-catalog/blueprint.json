@@ -1,0 +1,31 @@
+{
+  "$comment": "A view of everything published to the trading lab, read through the lab connector. Pushed with `gadgets push`, never bundled.",
+  "blueprintId": "skill.lab-catalog",
+  "title": "Lab Catalog",
+  "description": "Shows every workflow, skill, agent, and strategy published to the trading lab, their revisions, the studies that use them, and their files.",
+  "output": {
+    "id": "catalog",
+    "noun": "Catalog",
+    "plural": "Catalogs",
+    "icon": "table"
+  },
+  "author": {
+    "type": "user",
+    "name": "Local developer",
+    "id": "local@demo.local"
+  },
+  "revision": 1,
+  "created": "2026-10-02T00:00:00.000Z",
+  "version": 1,
+  "lastUpdated": "2026-10-02T00:00:00.000Z",
+  "bindings": {
+    "LAB_CATALOG": {
+      "title": "Trading lab catalog",
+      "description": "Connect the trading lab and choose its catalog. The view only reads.",
+      "type": "gatekeeper",
+      "gatekeeperName": "lab",
+      "typeUrlPattern": "https://lab.invalid/revisions",
+      "resourceUrl": "https://lab.invalid/revisions"
+    }
+  }
+}

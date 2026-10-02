@@ -7,7 +7,9 @@ import { RpcStub, RpcTarget } from "cloudflare:workers";
 import type { ApprovalQueue } from "@gadgets/workshop-shared/gatekeeper";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LabApi } from "../../src/lab-api";
-import { NOT_AVAILABLE, RevisionLineageSession, StudyReaderSession } from "../../src/lab-session";
+import {
+  NOT_AVAILABLE, RevisionCatalogSession, RevisionLineageSession, StudyReaderSession,
+} from "../../src/lab-session";
 
 type Observation = { title: string; description: string };
 
@@ -33,6 +35,9 @@ const revision = {
 function stubLab() {
   const spy = vi.fn(async (url: string) => {
     const path = new URL(url).pathname;
+    if (path === "/revisions") {
+      return Response.json({ artifacts: [{ kind: "workflow", name: "breakout", revisions: 1, latest: revision }] });
+    }
     if (path === "/revisions/workflow/breakout") {
       return Response.json({ revisions: [{ ...revision, studies: [] }] });
     }
@@ -68,18 +73,25 @@ function sessions() {
     queue,
     lineage: new RevisionLineageSession(api, stub(), "workflow", "breakout"),
     study: new StudyReaderSession(api, stub(), "stu_0001"),
+    catalog: new RevisionCatalogSession(api, stub()),
   };
 }
 
 describe("sessions", () => {
   it("record every read as an observation before returning it", async () => {
     stubLab();
-    const { queue, lineage, study } = sessions();
+    const { queue, lineage, study, catalog } = sessions();
+    expect(await catalog.list()).toMatchObject([
+      { kind: "workflow", name: "breakout", revisions: 1, latest: { number: 1, contentHash: revision.content_hash } },
+    ]);
+    expect((await catalog.files("workflow", "breakout", 1)).map((f) => f.path)).toEqual(["server.js"]);
     expect((await lineage.list()).map((r) => r.number)).toEqual([1]);
     expect((await lineage.get(1)).contentHash).toBe(revision.content_hash);
     expect(await lineage.files(1)).toEqual([{ path: "server.js", text: "export class Gadget {}" }]);
     expect((await study.describe()).startingCapital).toEqual({ currency: "USD", amountCents: 10_000_000 });
     expect(queue.observations.map((o) => o.title)).toEqual([
+      "List everything published to the lab",
+      "Read the files of workflow/breakout@1",
       "List revisions of workflow/breakout",
       "Read workflow/breakout@1",
       "Read the files of workflow/breakout@1",
