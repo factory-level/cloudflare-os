@@ -7,15 +7,25 @@ import { RpcStub, RpcTarget } from "cloudflare:workers";
 import type { ApprovalQueue } from "@gadgets/workshop-shared/gatekeeper";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LabApi } from "../../src/lab-api";
-import { NOT_AVAILABLE, RevisionLineageSession, StudyReaderSession } from "../../src/lab-session";
+import {
+  NOT_AVAILABLE, type PendingRun, RevisionCatalogSession, RevisionLineageSession, StudyReaderSession,
+  StudyVariantSession,
+} from "../../src/lab-session";
 
 type Observation = { title: string; description: string };
 
 class TestApprovalQueue extends RpcTarget {
   readonly observations: Observation[] = [];
 
+  readonly actions: { id: number; description: { title: string; autoApprovable?: boolean; actionKind?: { tag: string } } }[] = [];
+
   async authorizeObservation(entry: Observation): Promise<void> {
     this.observations.push(entry);
+  }
+
+  async submitAction(id: number, description: { title: string; autoApprovable?: boolean; actionKind?: { tag: string } })
+      : Promise<void> {
+    this.actions.push({ id, description });
   }
 
 }
@@ -33,6 +43,9 @@ const revision = {
 function stubLab() {
   const spy = vi.fn(async (url: string) => {
     const path = new URL(url).pathname;
+    if (path === "/revisions") {
+      return Response.json({ artifacts: [{ kind: "workflow", name: "breakout", revisions: 1, latest: revision }] });
+    }
     if (path === "/revisions/workflow/breakout") {
       return Response.json({ revisions: [{ ...revision, studies: [] }] });
     }
@@ -53,6 +66,21 @@ function stubLab() {
         },
       });
     }
+    if (path === "/studies/stu_0001/variants/a") {
+      return Response.json({ study: {}, label: "a", revision: { kind: "workflow", name: "breakout", number: 1,
+        contentHash: revision.content_hash } });
+    }
+    if (path === "/studies/stu_0001/variants/a/cycle") {
+      return Response.json({ cycle: { key: "2026-06-26", symbol: "FIXT", bars: [{ t: 1, closeCents: 5000, volume: 9 }] } });
+    }
+    if (path === "/studies/stu_0001/variants/a/runs" || path === "/studies/stu_0001/runs") return Response.json({ runs: [] });
+    if (path === "/studies/stu_0001/compare") {
+      return Response.json({ comparison: { variants: ["a", "b"], sharedCycles: 0, equityChangeCents: [0, 0],
+        costMicroUsd: [0, 0], outcome: "insufficient_sample", recordClass: "virtual" } });
+    }
+    if (path === "/studies/stu_0001/portfolios") {
+      return Response.json({ portfolios: [{ label: "a", portfolio: { currency: "USD", cashCents: 1, positions: [], equityCents: 1 } }] });
+    }
     if (path === "/connections/con_0001/revoke") return Response.json({ connection: { id: "con_0001" } });
     return Response.json({ code: "not_found" }, { status: 404 });
   });
@@ -68,18 +96,25 @@ function sessions() {
     queue,
     lineage: new RevisionLineageSession(api, stub(), "workflow", "breakout"),
     study: new StudyReaderSession(api, stub(), "stu_0001"),
+    catalog: new RevisionCatalogSession(api, stub()),
   };
 }
 
 describe("sessions", () => {
   it("record every read as an observation before returning it", async () => {
     stubLab();
-    const { queue, lineage, study } = sessions();
+    const { queue, lineage, study, catalog } = sessions();
+    expect(await catalog.list()).toMatchObject([
+      { kind: "workflow", name: "breakout", revisions: 1, latest: { number: 1, contentHash: revision.content_hash } },
+    ]);
+    expect((await catalog.files("workflow", "breakout", 1)).map((f) => f.path)).toEqual(["server.js"]);
     expect((await lineage.list()).map((r) => r.number)).toEqual([1]);
     expect((await lineage.get(1)).contentHash).toBe(revision.content_hash);
     expect(await lineage.files(1)).toEqual([{ path: "server.js", text: "export class Gadget {}" }]);
     expect((await study.describe()).startingCapital).toEqual({ currency: "USD", amountCents: 10_000_000 });
     expect(queue.observations.map((o) => o.title)).toEqual([
+      "List everything published to the lab",
+      "Read the files of workflow/breakout@1",
       "List revisions of workflow/breakout",
       "Read workflow/breakout@1",
       "Read the files of workflow/breakout@1",
@@ -96,11 +131,8 @@ describe("sessions", () => {
 
   it("throw for what the lab does not serve yet", async () => {
     stubLab();
-    const { lineage, study } = sessions();
-    for (const call of [
-      () => lineage.diff(1), () => lineage.runs(1), () => study.portfolios(),
-      () => study.compare("a", "b"), () => study.runs(),
-    ]) {
+    const { lineage } = sessions();
+    for (const call of [() => lineage.diff(1), () => lineage.runs(1)]) {
       await expect(call()).rejects.toThrow(NOT_AVAILABLE);
     }
   });
@@ -135,5 +167,49 @@ describe("UserAccount.revoke", () => {
       await account.revoke();
       await expect(account.getActing()).rejects.toThrow(/disconnected/);
     });
+  });
+});
+
+describe("StudyVariantSession", () => {
+  function variant() {
+    const queue = new TestApprovalQueue();
+    const pending: PendingRun[] = [];
+    const session = new StudyVariantSession(
+      new LabApi(config, async () => acting),
+      new RpcStub(queue) as unknown as RpcStub<ApprovalQueue>,
+      "stu_0001", "a",
+      { list: () => pending, add: (report) => { pending.push({ actionId: pending.length + 1, report, submittedAt: "t" }); return pending.length; } },
+    );
+    return { queue, pending, session };
+  }
+  const report = {
+    cycleKey: "2026-06-26", agent: "momentum", outcome: "decided" as const, decision: "buy 10",
+    orderIntent: { symbol: "FIXT", side: "buy" as const, quantity: 10 }, evidence: [],
+  };
+
+  it("queues a run as one auto-approvable action and holds the next cycle until it is recorded", async () => {
+    stubLab();
+    const { queue, session } = variant();
+    expect((await session.nextCycle())?.key).toBe("2026-06-26");
+    const run = await session.recordRun(report);
+    expect(run).toMatchObject({ id: "pending:1", cycleKey: "2026-06-26", fill: null });
+    expect((await session.recordRun(report)).id).toBe("pending:1");
+    expect(queue.actions).toHaveLength(1);
+    expect(queue.actions[0]?.description).toMatchObject({ autoApprovable: true, actionKind: { tag: "lab.record_run" } });
+    expect(await session.nextCycle()).toBeNull();
+    expect((await session.runs()).map((r) => r.id)).toEqual(["pending:1"]);
+  });
+
+  it("study reads now come from the lab", async () => {
+    stubLab();
+    const { study, queue } = sessions();
+    expect(await study.portfolios()).toHaveLength(1);
+    expect(await study.runs()).toEqual([]);
+    expect((await study.compare("a", "b")).outcome).toBe("insufficient_sample");
+    expect(queue.observations.map((o) => o.title)).toEqual([
+      "Read the portfolios of study stu_0001",
+      "Read runs of study stu_0001",
+      "Compare a and b in study stu_0001",
+    ]);
   });
 });

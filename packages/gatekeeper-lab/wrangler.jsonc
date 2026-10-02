@@ -36,6 +36,18 @@
         "RevisionLineageGatekeeper",
         "StudyReaderGatekeeper"
       ]
+    },
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "RevisionCatalogGatekeeper"
+      ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
+        "StudyVariantGatekeeper"
+      ]
     }
   ]
 }

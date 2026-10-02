@@ -15,6 +15,7 @@ import { callGadget, cleanTried, latestTried, readTried, tryInWorkshop } from ".
 import { loginToWorkshop } from "./login.ts";
 import { serveMcp } from "./mcp.ts";
 import { publishRevision } from "./lab.ts";
+import { parseBind, resolveBindings, suggestedBindings } from "./bindings.ts";
 import { packSkill } from "./pack.ts";
 import { qualifySkill } from "./qualify.ts";
 import { listSkills, resolveSkillDir, testSkill } from "./skills.ts";
@@ -31,6 +32,7 @@ const USAGE = `Usage:
 
   Middle loop (in a Workshop: --to <url>, or the paired local one):
   gadgets try <skill> [--to <workshop-url>] [--method <name>] [--args <json-array>]
+              [--bind NAME=vendor:resourceUrl ...]   (default: the skill's suggested bindings)
   gadgets call <skill> <method> [--args <json-array>] [--to <workshop-url>]
   gadgets runs <skill> [--to <workshop-url>]            (recorded scheduled runs)
   gadgets clean [--to <workshop-url>]                   (delete the workspaces try created)
@@ -73,6 +75,7 @@ async function main(argv: string[]): Promise<number> {
       update: { type: "boolean" },
       json: { type: "boolean" },
       method: { type: "string" },
+      bind: { type: "string", multiple: true },
       args: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
@@ -184,7 +187,10 @@ async function main(argv: string[]): Promise<number> {
         return 1;
       }
       using opened = await openTarget(values.to);
-      const { workspace, identity } = await tryInWorkshop(opened.api, opened.user, packed, opened.target);
+      const { bindings, skipped } = await resolveBindings(
+          opened.user, (values.bind ?? []).map(parseBind), await suggestedBindings(directory));
+      for (const reason of skipped) console.error(`Not bound: ${reason}`);
+      const { workspace, identity } = await tryInWorkshop(opened.api, opened.user, packed, opened.target, bindings);
       const method = values.method ?? "runFixtures";
       const result = await callGadget(opened.user, workspace, method, jsonArgs(values.args));
       const local = method === "runFixtures" ? await replaySkill(directory) : undefined;

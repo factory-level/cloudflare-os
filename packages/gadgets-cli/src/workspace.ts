@@ -6,7 +6,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { RpcPromise, RpcStub } from "capnweb";
-import type { AuthenticatedApi, PublicApi } from "@gadgets/workshop-shared/api";
+import type { AuthenticatedApi, BlueprintBindingAssignment, PublicApi } from "@gadgets/workshop-shared/api";
 import { configDir } from "./credentials.ts";
 import type { PackedSkill } from "./pack.ts";
 import { pushSkill } from "./workshop.ts";
@@ -54,11 +54,12 @@ export async function latestTried(skill: string, target: string): Promise<TriedW
  * Pushes `packed`, creates a fresh workspace from it and remembers it. `verified` is whether the
  * Workshop serves back exactly the pushed bytes; an unverified push creates no workspace.
  */
-export async function tryInWorkshop(api: RpcStub<PublicApi>, user: User, packed: PackedSkill, target: string)
+export async function tryInWorkshop(api: RpcStub<PublicApi>, user: User, packed: PackedSkill, target: string,
+    bindings: Record<string, BlueprintBindingAssignment> = {})
     : Promise<{ workspace: TriedWorkspace; identity: { id: string; name: string } }> {
   const pushed = await pushSkill(api, user, packed);
   if (!pushed.verified) throw new Error("The Workshop holds different bytes than were pushed; not creating a workspace");
-  using overseer = user.newGadgetFromBlueprint(pushed.blueprintId, {});
+  using overseer = user.newGadgetFromBlueprint(pushed.blueprintId, bindings);
   const metadata = await overseer.getMetadata();
   if (metadata.defaultGadgetId === undefined) throw new Error("The new workspace has no gadget");
   const workspace: TriedWorkspace = {

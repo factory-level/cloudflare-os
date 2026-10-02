@@ -8,6 +8,7 @@ import {
 import { harness, type Outcome, type State } from "./lib/harness.ts";
 import { recordOccurrence, RUN_PREFIX, type ScheduledFiring, type ScheduledRunRecord } from "./lib/occurrence.ts";
 import type { NamedRun } from "./lib/review.ts";
+import { cycleReport, type LabCycle, type LabPortfolio, type RunReport } from "./lib/study.ts";
 
 export type { ScheduledRunRecord };
 
@@ -22,9 +23,33 @@ interface LanguageModelBinding {
   run(options: { prompt: string; systemPrompt?: string }): Promise<string>;
 }
 
+/** The part of the lab connector's `StudyVariant` this gadget uses. */
+interface LabVariantBinding {
+  nextCycle(): Promise<LabCycle | null>;
+  portfolio(): Promise<LabPortfolio>;
+  recordRun(report: RunReport): Promise<{ id: string; riskRejection: string | null }>;
+}
+
 /** The bindings this Durable Object may be given; there are none it requires. */
 interface GadgetEnv {
   REVIEW_MODEL?: LanguageModelBinding;
+  LAB_VARIANT?: LabVariantBinding;
+}
+
+/** The outcome of one study cycle. */
+export type StudyCycleResult =
+  | { status: "unbound" | "waiting" }
+  | { status: "recorded"; report: RunReport; runId: string; riskRejection: string | null };
+
+/** Takes the variant's waiting cycle, if any, decides it, and records the run with the lab. */
+async function runStudyCycle(env: GadgetEnv): Promise<StudyCycleResult> {
+  const variant = env.LAB_VARIANT;
+  if (!variant) return { status: "unbound" };
+  const cycle = await variant.nextCycle();
+  if (!cycle) return { status: "waiting" };
+  const report = cycleReport(cycle, await variant.portfolio());
+  const run = await variant.recordRun(report);
+  return { status: "recorded", report, runId: run.id, riskRejection: run.riskRejection };
 }
 
 function runFixtures(): NamedRun[] {
@@ -46,6 +71,11 @@ export class Gadget extends DurableObject<GadgetEnv, unknown> {
   /** One replay session over `bars`, exactly as `gadgets run --bars` computes it locally. */
   replay(bars: Bar[], state?: State): { outcome: Outcome; state: State } {
     return harness.session(bars, state);
+  }
+
+  /** Runs one cycle of the bound study variant: see `runStudyCycle`. */
+  async runStudyCycle(): Promise<StudyCycleResult> {
+    return runStudyCycle(this.env);
   }
 
   /** The most recent scheduled runs, newest first. */
@@ -75,5 +105,7 @@ class ScheduledRun extends RpcTarget {
   async onSchedule(firing: ScheduledFiring): Promise<void> {
     const model = this.#env.REVIEW_MODEL;
     await recordOccurrence(this.#storage, firing, runFixtures(), model && (prompt => model.run(prompt)));
+    // A bound study variant takes its cycle on the same schedule; the lab keeps one run per cycle.
+    if (this.#env.LAB_VARIANT) await runStudyCycle(this.#env);
   }
 }

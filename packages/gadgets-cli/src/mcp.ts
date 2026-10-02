@@ -19,6 +19,7 @@ import { DEFAULT_PAIRING_PORT, startPairingListener } from "./pairing.ts";
 import { listSkills, resolveSkillDir, testSkill } from "./skills.ts";
 import { testAndPack } from "./snapshot.ts";
 import { openTarget } from "./target.ts";
+import { resolveBindings, suggestedBindings } from "./bindings.ts";
 import { callGadget, cleanTried, latestTried, tryInWorkshop } from "./workspace.ts";
 import { connectSession, connectWithAccess, pushSkill } from "./workshop.ts";
 
@@ -120,12 +121,13 @@ const TOOLS: Tool[] = [
       const { tests, packed } = await testAndPack(directory);
       if (!tests.passed) return { tried: false, reason: "tests failed", output: tests.output };
       using opened = await openTarget(typeof args.target === "string" ? args.target : undefined);
-      const { workspace, identity } = await tryInWorkshop(opened.api, opened.user, packed, opened.target);
+      const { bindings, skipped } = await resolveBindings(opened.user, [], await suggestedBindings(directory));
+      const { workspace, identity } = await tryInWorkshop(opened.api, opened.user, packed, opened.target, bindings);
       const result = await callGadget(opened.user, workspace, "runFixtures");
       const local = await replaySkill(directory);
       const matchesLocal = Array.isArray(result) && result.length === local.length && local.every((entry, index) =>
           stable((result[index] as { result?: unknown }).result) === stable(outcomeOf(entry)));
-      return { tried: true, workspace, identity, matchesLocal, result };
+      return { tried: true, workspace, identity, matchesLocal, result, unbound: skipped };
     },
   },
   {
