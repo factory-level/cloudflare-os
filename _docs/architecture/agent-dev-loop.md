@@ -1,6 +1,8 @@
 ---
 title: Agent Development Loop
 covers:
+  - packages/gadgets-cli/src/bindings.ts
+  - packages/gadgets-cli/src/bindings.test.ts
   - packages/gadgets-cli/src/replay.ts
   - packages/gadgets-cli/src/replayWorker.ts
   - packages/gadgets-cli/src/replay.test.ts
@@ -18,7 +20,7 @@ covers:
   - packages/skills/skills/breakout-workflow/files/lib/occurrence.ts
   - packages/skills/skills/momentum-signal/files/lib/harness.ts
 touchpoints: []
-updated: 2026-10-01
+updated: 2026-10-02
 ---
 
 # Agent Development Loop
@@ -56,9 +58,11 @@ The `gadgets` command line runs an inner loop on the developer's machine and a m
 
 **Snapshot.** `withSnapshot` copies the skill, without `node_modules`, to a temporary directory that keeps the skill's name, writes a test configuration there that selects only that directory's `__tests__`, and links the skills package's `node_modules` so the tests can import the test runner. `testSkill`, `qualifySkill`, and the tested path of `push` and `try` all read the copy. The copy is removed afterwards, also on failure.
 
-**Workshop.** `gadgets try` tests and packs from one snapshot, pushes, calls `newGadgetFromBlueprint` with no bindings, reads the new workspace's default gadget, calls `runFixtures` through `connectToGadget`, and compares the result with a local replay. It appends the workspace to `workspaces.json` in the configuration directory. `gadgets call` and `gadgets runs` reopen the latest workspace for a skill with `openGadget`. `gadgets clean` calls `deleteSelf` on each remembered workspace in that Workshop and deletes its blueprint; a workspace that no longer exists is forgotten, and one that could not be deleted stays remembered.
+**Workshop.** `gadgets try` tests and packs from one snapshot, pushes, calls `newGadgetFromBlueprint` with its bindings, reads the new workspace's default gadget, calls `runFixtures` through `connectToGadget`, and compares the result with a local replay. It appends the workspace to `workspaces.json` in the configuration directory. `gadgets call` and `gadgets runs` reopen the latest workspace for a skill with `openGadget`. `gadgets clean` calls `deleteSelf` on each remembered workspace in that Workshop and deletes its blueprint; a workspace that no longer exists is forgotten, and one that could not be deleted stays remembered.
 
 **Scheduled occurrence.** `recordOccurrence` stores the deterministic runs and claims the occurrence before the model is called, marking the review as interrupted. It then calls the model and overwrites the record with the review or its error. A retry of the same occurrence finds the claim and returns.
+
+**Bindings.** `try` and `try_skill` fill each gatekeeper binding `blueprint.json` declares with a suggested `resourceUrl` from the person's connected account of that vendor (`gatekeeperName`), when there is exactly one; otherwise the binding is left empty and the reason printed. `try --bind NAME=vendor:resourceUrl` chooses explicitly and fails when no single account fits. Accounts come from `subscribeConnectedAccounts` (`src/bindings.ts`).
 
 Commands: `new`, `dev`, `run`, `compare`, `golden`, `try`, `call`, `runs`, `clean`, `status`, `pair`. Tools: `new_skill`, `replay_skill`, `compare_skills`, `check_golden`, `try_skill`, `call_gadget`, `clean_workspaces`. There is no tool that updates a golden file.
 
