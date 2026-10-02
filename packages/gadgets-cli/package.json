@@ -1,0 +1,31 @@
+{
+  "name": "@gadgets/cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "`gadgets`: packs locally authored skills into deterministic .gadget archives, pushes them to a Workshop under the pusher's Cloudflare Access identity, and bridges a local agent harness (Claude Code) to the local Workshop over MCP. Also holds the fully local demo: a mock Access edge and an Access-mode prod-sim Workshop.",
+  "type": "module",
+  "bin": {
+    "gadgets": "./src/bin.ts"
+  },
+  "scripts": {
+    "test:run": "vitest run",
+    "test:watch": "vitest",
+    "demo": "node src/demo/runDemo.ts",
+    "demo:edge": "node src/demo/mockAccessEdge.ts",
+    "demo:prod-sim": "node src/demo/prodSim.ts",
+    "dev:client": "node src/demo/devClient.ts"
+  },
+  "dependencies": {
+    "@gadgets/bundled-blueprints": "workspace:*",
+    "@gadgets/workshop-shared": "workspace:*",
+    "capnweb": "catalog:",
+    "jsonc-parser": "^3.3.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "catalog:",
+    "@gadgets/scripts": "workspace:*",
+    "@types/node": "^26.1.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

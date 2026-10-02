@@ -1,0 +1,13 @@
+// Each skill's `files/server.ts` -- the gadget's Durable Object -- under the Workers types. Mirrors
+// `@gadgets/bundled-blueprints`'s tsconfig.server.json.
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "types": ["@cloudflare/workers-types/experimental"]
+  },
+  "files": [],
+  "include": ["skills/*/files/server.ts"]
+}

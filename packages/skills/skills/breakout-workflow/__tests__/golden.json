@@ -1,0 +1,561 @@
+{
+  "breakout-buy": {
+    "event": "price.breakout",
+    "action": "buy",
+    "fill": {
+      "model": "execution-model-v1",
+      "side": "buy",
+      "quantity": 49,
+      "priceCents": 10156,
+      "slippageCentsPerShare": 6,
+      "notionalCents": 497644,
+      "feeCents": 49,
+      "cashDeltaCents": -497693
+    },
+    "portfolio": {
+      "cashCents": 502307,
+      "positionQty": 49
+    },
+    "evidence": [
+      {
+        "step": 1,
+        "kind": "observation",
+        "data": {
+          "barCount": 6,
+          "lookback": 5,
+          "latest": {
+            "t": 1788652800,
+            "closeCents": 10150,
+            "volume": 1200
+          },
+          "window": {
+            "fromT": 1788220800,
+            "toT": 1788566400,
+            "maxCloseCents": 10030,
+            "minCloseCents": 9990,
+            "volumeSum": 5000
+          }
+        },
+        "summary": "6 bars; latest t=1788652800 close 10150 vol 1200; prior 5-bar window [9990, 10030]"
+      },
+      {
+        "step": 2,
+        "kind": "classification",
+        "data": {
+          "event": "price.breakout",
+          "reason": "close 10150 > window max 10030"
+        },
+        "summary": "price.breakout: close 10150 > window max 10030"
+      },
+      {
+        "step": 3,
+        "kind": "assertions",
+        "data": [
+          {
+            "id": "portfolio.valid",
+            "pass": true,
+            "reason": "cash 1000000 and position 0 are non-negative integers"
+          },
+          {
+            "id": "policy.valid",
+            "pass": true,
+            "reason": "maxPositionQty 100 and maxOrderCents 500000 are positive integers"
+          },
+          {
+            "id": "position.within-limit",
+            "pass": true,
+            "reason": "position 0 <= max 100"
+          },
+          {
+            "id": "buy.capacity",
+            "pass": true,
+            "reason": "room for at least 1 share: position 0 < max 100"
+          },
+          {
+            "id": "buy.cash",
+            "pass": true,
+            "reason": "cash 1000000 covers 1 share at 10157 all-in"
+          },
+          {
+            "id": "buy.order-limit",
+            "pass": true,
+            "reason": "max order 500000 covers 1 share at 10157 all-in"
+          }
+        ],
+        "summary": "6/6 passed"
+      },
+      {
+        "step": 4,
+        "kind": "decision",
+        "data": {
+          "intended": "buy",
+          "action": "buy",
+          "quantity": 49,
+          "reason": "min(capacity 100, order limit 49, cash 98) at 10157 all-in"
+        },
+        "summary": "buy 49: min(capacity 100, order limit 49, cash 98) at 10157 all-in"
+      },
+      {
+        "step": 5,
+        "kind": "order",
+        "data": {
+          "side": "buy",
+          "quantity": 49,
+          "referenceCents": 10150
+        },
+        "summary": "buy 49 @ ref 10150"
+      },
+      {
+        "step": 6,
+        "kind": "fill",
+        "data": {
+          "model": "execution-model-v1",
+          "side": "buy",
+          "quantity": 49,
+          "priceCents": 10156,
+          "slippageCentsPerShare": 6,
+          "notionalCents": 497644,
+          "feeCents": 49,
+          "cashDeltaCents": -497693
+        },
+        "summary": "buy 49 @ 10156 (slippage 6/sh, fee 49), cash -497693"
+      },
+      {
+        "step": 7,
+        "kind": "portfolio",
+        "data": {
+          "cashCents": 502307,
+          "positionQty": 49
+        },
+        "summary": "cash 502307, position 49"
+      }
+    ]
+  },
+  "breakdown-sell": {
+    "event": "price.breakdown",
+    "action": "sell",
+    "fill": {
+      "model": "execution-model-v1",
+      "side": "sell",
+      "quantity": 40,
+      "priceCents": 9795,
+      "slippageCentsPerShare": 5,
+      "notionalCents": 391800,
+      "feeCents": 40,
+      "cashDeltaCents": 391760
+    },
+    "portfolio": {
+      "cashCents": 891760,
+      "positionQty": 0
+    },
+    "evidence": [
+      {
+        "step": 1,
+        "kind": "observation",
+        "data": {
+          "barCount": 6,
+          "lookback": 5,
+          "latest": {
+            "t": 1788652800,
+            "closeCents": 9800,
+            "volume": 1500
+          },
+          "window": {
+            "fromT": 1788220800,
+            "toT": 1788566400,
+            "maxCloseCents": 10010,
+            "minCloseCents": 9970,
+            "volumeSum": 5000
+          }
+        },
+        "summary": "6 bars; latest t=1788652800 close 9800 vol 1500; prior 5-bar window [9970, 10010]"
+      },
+      {
+        "step": 2,
+        "kind": "classification",
+        "data": {
+          "event": "price.breakdown",
+          "reason": "close 9800 < window min 9970"
+        },
+        "summary": "price.breakdown: close 9800 < window min 9970"
+      },
+      {
+        "step": 3,
+        "kind": "assertions",
+        "data": [
+          {
+            "id": "portfolio.valid",
+            "pass": true,
+            "reason": "cash 500000 and position 40 are non-negative integers"
+          },
+          {
+            "id": "policy.valid",
+            "pass": true,
+            "reason": "maxPositionQty 100 and maxOrderCents 500000 are positive integers"
+          },
+          {
+            "id": "position.within-limit",
+            "pass": true,
+            "reason": "position 40 <= max 100"
+          },
+          {
+            "id": "sell.has-position",
+            "pass": true,
+            "reason": "position 40 > 0"
+          },
+          {
+            "id": "sell.order-limit",
+            "pass": true,
+            "reason": "max order 500000 covers 1 share at 9795"
+          }
+        ],
+        "summary": "5/5 passed"
+      },
+      {
+        "step": 4,
+        "kind": "decision",
+        "data": {
+          "intended": "sell",
+          "action": "sell",
+          "quantity": 40,
+          "reason": "min(position 40, order limit 51)"
+        },
+        "summary": "sell 40: min(position 40, order limit 51)"
+      },
+      {
+        "step": 5,
+        "kind": "order",
+        "data": {
+          "side": "sell",
+          "quantity": 40,
+          "referenceCents": 9800
+        },
+        "summary": "sell 40 @ ref 9800"
+      },
+      {
+        "step": 6,
+        "kind": "fill",
+        "data": {
+          "model": "execution-model-v1",
+          "side": "sell",
+          "quantity": 40,
+          "priceCents": 9795,
+          "slippageCentsPerShare": 5,
+          "notionalCents": 391800,
+          "feeCents": 40,
+          "cashDeltaCents": 391760
+        },
+        "summary": "sell 40 @ 9795 (slippage 5/sh, fee 40), cash +391760"
+      },
+      {
+        "step": 7,
+        "kind": "portfolio",
+        "data": {
+          "cashCents": 891760,
+          "positionQty": 0
+        },
+        "summary": "cash 891760, position 0"
+      }
+    ]
+  },
+  "volume-anomaly-hold": {
+    "event": "volume.anomaly",
+    "action": "hold",
+    "fill": null,
+    "portfolio": {
+      "cashCents": 1000000,
+      "positionQty": 10
+    },
+    "evidence": [
+      {
+        "step": 1,
+        "kind": "observation",
+        "data": {
+          "barCount": 6,
+          "lookback": 5,
+          "latest": {
+            "t": 1788652800,
+            "closeCents": 10005,
+            "volume": 3500
+          },
+          "window": {
+            "fromT": 1788220800,
+            "toT": 1788566400,
+            "maxCloseCents": 10030,
+            "minCloseCents": 9990,
+            "volumeSum": 5000
+          }
+        },
+        "summary": "6 bars; latest t=1788652800 close 10005 vol 3500; prior 5-bar window [9990, 10030]"
+      },
+      {
+        "step": 2,
+        "kind": "classification",
+        "data": {
+          "event": "volume.anomaly",
+          "reason": "volume 3500 >= 3x window average 5000/5"
+        },
+        "summary": "volume.anomaly: volume 3500 >= 3x window average 5000/5"
+      },
+      {
+        "step": 3,
+        "kind": "assertions",
+        "data": [
+          {
+            "id": "portfolio.valid",
+            "pass": true,
+            "reason": "cash 1000000 and position 10 are non-negative integers"
+          },
+          {
+            "id": "policy.valid",
+            "pass": true,
+            "reason": "maxPositionQty 100 and maxOrderCents 500000 are positive integers"
+          },
+          {
+            "id": "position.within-limit",
+            "pass": true,
+            "reason": "position 10 <= max 100"
+          }
+        ],
+        "summary": "3/3 passed"
+      },
+      {
+        "step": 4,
+        "kind": "decision",
+        "data": {
+          "intended": "hold",
+          "action": "hold",
+          "quantity": 0,
+          "reason": "no trade on volume.anomaly"
+        },
+        "summary": "hold: no trade on volume.anomaly"
+      },
+      {
+        "step": 5,
+        "kind": "order",
+        "data": null,
+        "summary": "no order"
+      },
+      {
+        "step": 6,
+        "kind": "fill",
+        "data": null,
+        "summary": "no fill"
+      },
+      {
+        "step": 7,
+        "kind": "portfolio",
+        "data": {
+          "cashCents": 1000000,
+          "positionQty": 10
+        },
+        "summary": "cash 1000000, position 10"
+      }
+    ]
+  },
+  "breakout-blocked-at-position-limit": {
+    "event": "price.breakout",
+    "action": "blocked",
+    "fill": null,
+    "portfolio": {
+      "cashCents": 1000000,
+      "positionQty": 100
+    },
+    "evidence": [
+      {
+        "step": 1,
+        "kind": "observation",
+        "data": {
+          "barCount": 6,
+          "lookback": 5,
+          "latest": {
+            "t": 1788652800,
+            "closeCents": 10150,
+            "volume": 1200
+          },
+          "window": {
+            "fromT": 1788220800,
+            "toT": 1788566400,
+            "maxCloseCents": 10030,
+            "minCloseCents": 9990,
+            "volumeSum": 5000
+          }
+        },
+        "summary": "6 bars; latest t=1788652800 close 10150 vol 1200; prior 5-bar window [9990, 10030]"
+      },
+      {
+        "step": 2,
+        "kind": "classification",
+        "data": {
+          "event": "price.breakout",
+          "reason": "close 10150 > window max 10030"
+        },
+        "summary": "price.breakout: close 10150 > window max 10030"
+      },
+      {
+        "step": 3,
+        "kind": "assertions",
+        "data": [
+          {
+            "id": "portfolio.valid",
+            "pass": true,
+            "reason": "cash 1000000 and position 100 are non-negative integers"
+          },
+          {
+            "id": "policy.valid",
+            "pass": true,
+            "reason": "maxPositionQty 100 and maxOrderCents 500000 are positive integers"
+          },
+          {
+            "id": "position.within-limit",
+            "pass": true,
+            "reason": "position 100 <= max 100"
+          },
+          {
+            "id": "buy.capacity",
+            "pass": false,
+            "reason": "room for at least 1 share: position 100 < max 100"
+          },
+          {
+            "id": "buy.cash",
+            "pass": true,
+            "reason": "cash 1000000 covers 1 share at 10157 all-in"
+          },
+          {
+            "id": "buy.order-limit",
+            "pass": true,
+            "reason": "max order 500000 covers 1 share at 10157 all-in"
+          }
+        ],
+        "summary": "5/6 passed; failed: buy.capacity"
+      },
+      {
+        "step": 4,
+        "kind": "decision",
+        "data": {
+          "intended": "buy",
+          "action": "blocked",
+          "quantity": 0,
+          "reason": "failed assertions: buy.capacity"
+        },
+        "summary": "blocked: failed assertions: buy.capacity"
+      },
+      {
+        "step": 5,
+        "kind": "order",
+        "data": null,
+        "summary": "no order"
+      },
+      {
+        "step": 6,
+        "kind": "fill",
+        "data": null,
+        "summary": "no fill"
+      },
+      {
+        "step": 7,
+        "kind": "portfolio",
+        "data": {
+          "cashCents": 1000000,
+          "positionQty": 100
+        },
+        "summary": "cash 1000000, position 100"
+      }
+    ]
+  },
+  "quiet-none": {
+    "event": "none",
+    "action": "hold",
+    "fill": null,
+    "portfolio": {
+      "cashCents": 1000000,
+      "positionQty": 0
+    },
+    "evidence": [
+      {
+        "step": 1,
+        "kind": "observation",
+        "data": {
+          "barCount": 6,
+          "lookback": 5,
+          "latest": {
+            "t": 1788652800,
+            "closeCents": 10005,
+            "volume": 1100
+          },
+          "window": {
+            "fromT": 1788220800,
+            "toT": 1788566400,
+            "maxCloseCents": 10030,
+            "minCloseCents": 9990,
+            "volumeSum": 5000
+          }
+        },
+        "summary": "6 bars; latest t=1788652800 close 10005 vol 1100; prior 5-bar window [9990, 10030]"
+      },
+      {
+        "step": 2,
+        "kind": "classification",
+        "data": {
+          "event": "none",
+          "reason": "close within [9990, 10030] and volume below 3x average"
+        },
+        "summary": "none: close within [9990, 10030] and volume below 3x average"
+      },
+      {
+        "step": 3,
+        "kind": "assertions",
+        "data": [
+          {
+            "id": "portfolio.valid",
+            "pass": true,
+            "reason": "cash 1000000 and position 0 are non-negative integers"
+          },
+          {
+            "id": "policy.valid",
+            "pass": true,
+            "reason": "maxPositionQty 100 and maxOrderCents 500000 are positive integers"
+          },
+          {
+            "id": "position.within-limit",
+            "pass": true,
+            "reason": "position 0 <= max 100"
+          }
+        ],
+        "summary": "3/3 passed"
+      },
+      {
+        "step": 4,
+        "kind": "decision",
+        "data": {
+          "intended": "hold",
+          "action": "hold",
+          "quantity": 0,
+          "reason": "no trade on none"
+        },
+        "summary": "hold: no trade on none"
+      },
+      {
+        "step": 5,
+        "kind": "order",
+        "data": null,
+        "summary": "no order"
+      },
+      {
+        "step": 6,
+        "kind": "fill",
+        "data": null,
+        "summary": "no fill"
+      },
+      {
+        "step": 7,
+        "kind": "portfolio",
+        "data": {
+          "cashCents": 1000000,
+          "positionQty": 0
+        },
+        "summary": "cash 1000000, position 0"
+      }
+    ]
+  }
+}

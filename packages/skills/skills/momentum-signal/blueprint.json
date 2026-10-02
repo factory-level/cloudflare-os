@@ -1,0 +1,22 @@
+{
+  "$comment": "A deterministic demo skill: moving-average momentum over a price series, producing an order intent. Pushed with `gadgets push`, never bundled.",
+  "blueprintId": "skill.momentum-signal",
+  "title": "Momentum Signal",
+  "description": "Deterministic moving-average momentum signal that turns a price series into a virtual order intent.",
+  "output": {
+    "id": "signal",
+    "noun": "Signal",
+    "plural": "Signals",
+    "icon": "chartBar"
+  },
+  "author": {
+    "type": "user",
+    "name": "Local developer",
+    "id": "local@demo.local"
+  },
+  "revision": 1,
+  "created": "2026-09-30T00:00:00.000Z",
+  "version": 2,
+  "lastUpdated": "2026-10-01T00:00:00.000Z",
+  "bindings": {}
+}
