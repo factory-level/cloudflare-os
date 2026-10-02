@@ -7,7 +7,8 @@ describe("resource URLs", () => {
   it("round-trip through their fixed patterns", () => {
     const revisions = { type: "revisions", kind: "workflow", name: "breakout-2" } as const;
     const study = { type: "study", studyId: "stu_0012" } as const;
-    for (const resource of [{ type: "catalog" } as const, revisions, study]) {
+    const variant = { type: "variant", studyId: "stu_0012", label: "b-2" } as const;
+    for (const resource of [{ type: "catalog" } as const, revisions, study, variant]) {
       expect(parseResourceUrl(resourceUrl(resource))).toEqual(resource);
     }
     expect(CATALOG_RESOURCE.urlPattern).toBe("https://lab.invalid/revisions");
@@ -21,6 +22,8 @@ describe("resource URLs", () => {
       "http://lab.invalid/studies/stu_0001",
       "https://lab.invalid/studies/0001",
       "https://lab.invalid/studies/stu_0001/runs",
+      "https://lab.invalid/studies/stu_0001/variants/B",
+      "https://lab.invalid/studies/stu_0001/variants/a/runs",
       "https://lab.invalid/studies/stu_0001?x=1",
       "https://lab.invalid/revisions/study/breakout",
       "https://lab.invalid/revisions/workflow/Breakout",

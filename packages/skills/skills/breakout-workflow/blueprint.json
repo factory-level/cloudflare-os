@@ -2,7 +2,7 @@
   "$comment": "A deterministic demo skill: an event-driven agent workflow (observe, classify, assert, decide, execute virtually) that returns an auditable evidence chain. Pushed with `gadgets push`, never bundled.",
   "blueprintId": "skill.breakout-workflow",
   "title": "Breakout Workflow",
-  "description": "Deterministic breakout/breakdown agent workflow over a bar series: classifies the latest bar, checks risk assertions, decides, fills virtually, and returns an evidence chain. Can run on a schedule, with an optional model review of runs that acted.",
+  "description": "Deterministic breakout/breakdown agent workflow over a bar series: classifies the latest bar, checks risk assertions, decides, fills virtually, and returns an evidence chain. Can run on a schedule, with an optional model review of runs that acted. Bound to a trading lab study variant, it runs that variant's cycles and records its decisions with the lab, which books any fill.",
   "output": {
     "id": "workflow-run",
     "noun": "Workflow run",
@@ -16,8 +16,8 @@
   },
   "revision": 1,
   "created": "2026-09-30T00:00:00.000Z",
-  "version": 3,
-  "lastUpdated": "2026-10-01T00:00:00.000Z",
+  "version": 4,
+  "lastUpdated": "2026-10-02T00:00:00.000Z",
   "bindings": {
     "REVIEW_MODEL": {
       "title": "Review model",
@@ -27,6 +27,13 @@
         "provider": "anthropic",
         "modelName": "claude-haiku-4-5-20251001"
       }
+    },
+    "LAB_VARIANT": {
+      "title": "Study variant",
+      "description": "Optional. A trading lab study variant this workflow runs: each cycle it reads the bars and portfolio, decides, and records the run; the lab books any fill.",
+      "type": "gatekeeper",
+      "gatekeeperName": "lab",
+      "typeUrlPattern": "https://lab.invalid/studies/:studyId/variants/:label"
     }
   }
 }

@@ -2,7 +2,18 @@
 // every read also names the connection it acts through and the person who made it, and the lab
 // refuses once that connection is revoked.
 
-import type { CatalogEntry, Revision, RevisionFile, RevisionRef, Study } from "./types";
+import type {
+  CatalogEntry,
+  Cycle,
+  Portfolio,
+  Revision,
+  RevisionFile,
+  RevisionRef,
+  Run,
+  RunQuery,
+  RunReport,
+  Study,
+} from "./types";
 
 /** Deployment configuration read from the Worker environment. */
 export type LabConfig = {
@@ -174,6 +185,51 @@ export class LabApi {
   async getStudy(id: string): Promise<Study> {
     const body = await this.#read<{ study: LabStudyRecord }>("studies", id);
     return toStudy(body.study);
+  }
+
+  /** The variant's study, label and revision, as the lab describes them. */
+  async describeVariant(studyId: string, label: string)
+      : Promise<{ study: Study; label: string; revision: RevisionRef & { contentHash: string } }> {
+    return this.#read("studies", studyId, "variants", label);
+  }
+
+  async nextCycle(studyId: string, label: string): Promise<Cycle | null> {
+    return (await this.#read<{ cycle: Cycle | null }>("studies", studyId, "variants", label, "cycle")).cycle;
+  }
+
+  async portfolio(studyId: string, label: string): Promise<Portfolio> {
+    return (await this.#read<{ portfolio: Portfolio }>("studies", studyId, "variants", label, "portfolio")).portfolio;
+  }
+
+  async variantRuns(studyId: string, label: string, query: RunQuery = {}): Promise<Run[]> {
+    const body = await this.#readQuery<{ runs: Run[] }>(query, "studies", studyId, "variants", label, "runs");
+    return body.runs;
+  }
+
+  async studyRuns(studyId: string, query: RunQuery & { variant?: string } = {}): Promise<Run[]> {
+    return (await this.#readQuery<{ runs: Run[] }>(query, "studies", studyId, "runs")).runs;
+  }
+
+  async portfolios(studyId: string): Promise<{ label: string; portfolio: Portfolio }[]> {
+    return (await this.#read<{ portfolios: { label: string; portfolio: Portfolio }[] }>(
+      "studies", studyId, "portfolios")).portfolios;
+  }
+
+  /** Records a run. The lab keeps one run per cycle key, so repeating this changes nothing. */
+  async recordRun(studyId: string, label: string, report: RunReport): Promise<Run> {
+    const acting = await this.#acting();
+    const body = await labRequest<{ run: Run }>(
+      this.#config, "POST", this.url("studies", studyId, "variants", label, "runs"), actingHeaders(acting), report);
+    return body.run;
+  }
+
+  async #readQuery<T>(query: Record<string, string | number | undefined>, ...segments: (string | number)[])
+      : Promise<T> {
+    const acting = await this.#acting();
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) if (value !== undefined) params.set(key, String(value));
+    const search = params.size ? `?${params}` : "";
+    return labRequest<T>(this.#config, "GET", this.url(...segments) + search, actingHeaders(acting));
   }
 
   async #read<T>(...segments: (string | number)[]): Promise<T> {

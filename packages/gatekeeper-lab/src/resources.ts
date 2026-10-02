@@ -13,11 +13,13 @@ export const KINDS: readonly RevisionRef["kind"][] = [
 ];
 const NAME = /^[a-z0-9][a-z0-9-]{0,62}$/;
 const STUDY_ID = /^stu_[0-9]+$/;
+const LABEL = /^[a-z0-9][a-z0-9-]{0,31}$/;
 
 export type LabResource =
   | { type: "catalog" }
   | { type: "revisions"; kind: RevisionRef["kind"]; name: string }
-  | { type: "study"; studyId: string };
+  | { type: "study"; studyId: string }
+  | { type: "variant"; studyId: string; label: string };
 
 export const CATALOG_RESOURCE: SupportedResource = {
   urlPattern: `${RESOURCE_ORIGIN}/revisions`,
@@ -39,10 +41,18 @@ export const STUDY_RESOURCE: SupportedResource = {
   description: "Read one study: its variants, their exact revisions, and its starting capital.",
 };
 
-export const SUPPORTED_RESOURCES = [CATALOG_RESOURCE, REVISIONS_RESOURCE, STUDY_RESOURCE];
+export const VARIANT_RESOURCE: SupportedResource = {
+  urlPattern: `${RESOURCE_ORIGIN}/studies/:studyId/variants/:label`,
+  title: "Lab study variant",
+  description: "Run one variant of a study: read its cycles and portfolio, and record what it decided " +
+    "each cycle. Its portfolio changes only through the lab's simulated fills.",
+};
+
+export const SUPPORTED_RESOURCES = [CATALOG_RESOURCE, REVISIONS_RESOURCE, STUDY_RESOURCE, VARIANT_RESOURCE];
 
 export function resourceUrl(resource: LabResource): string {
   if (resource.type === "catalog") return `${RESOURCE_ORIGIN}/revisions`;
+  if (resource.type === "variant") return `${RESOURCE_ORIGIN}/studies/${resource.studyId}/variants/${resource.label}`;
   return resource.type === "revisions"
     ? `${RESOURCE_ORIGIN}/revisions/${resource.kind}/${resource.name}`
     : `${RESOURCE_ORIGIN}/studies/${resource.studyId}`;
@@ -64,6 +74,9 @@ export function parseResourceUrl(url: string): LabResource | null {
     if ((KINDS as readonly string[]).includes(kind) && NAME.test(name))
       return { type: "revisions", kind: kind as RevisionRef["kind"], name };
   }
+  if (parts.length === 4 && parts[0] === "studies" && parts[2] === "variants"
+      && STUDY_ID.test(parts[1] as string) && LABEL.test(parts[3] as string))
+    return { type: "variant", studyId: parts[1] as string, label: parts[3] as string };
   if (parts.length === 2 && parts[0] === "studies" && STUDY_ID.test(parts[1] as string))
     return { type: "study", studyId: parts[1] as string };
   return null;

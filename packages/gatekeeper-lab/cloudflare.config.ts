@@ -32,4 +32,5 @@ export const wrangler = DEFAULT_GATEKEEPER_WRANGLER;
 export const migrations: DurableObjectMigration[] = [
   { tag: "v0", new_sqlite_classes: ["UserAccount", "RevisionLineageGatekeeper", "StudyReaderGatekeeper"] },
   { tag: "v1", new_sqlite_classes: ["RevisionCatalogGatekeeper"] },
+  { tag: "v2", new_sqlite_classes: ["StudyVariantGatekeeper"] },
 ];

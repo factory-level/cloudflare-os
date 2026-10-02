@@ -33,9 +33,11 @@ import type {
 import type { CatalogConfiguratorRpc } from "./configurator/catalog-configurator-types";
 import type { RevisionsConfiguratorRpc } from "./configurator/revisions-configurator-types";
 import type { StudyConfiguratorRpc } from "./configurator/study-configurator-types";
+import type { VariantConfiguratorRpc } from "./configurator/variant-configurator-types";
 import CATALOG_CONFIGURATOR_HTML from "./generated/catalog-configurator-ui.txt";
 import REVISIONS_CONFIGURATOR_HTML from "./generated/revisions-configurator-ui.txt";
 import STUDY_CONFIGURATOR_HTML from "./generated/study-configurator-ui.txt";
+import VARIANT_CONFIGURATOR_HTML from "./generated/variant-configurator-ui.txt";
 import {
   type Acting,
   connect,
@@ -46,7 +48,14 @@ import {
   readLabConfig,
   revoke as revokeConnection,
 } from "./lab-api";
-import { RevisionCatalogSession, RevisionLineageSession, StudyReaderSession } from "./lab-session";
+import {
+  type PendingRun,
+  RECORD_RUN_KIND,
+  RevisionCatalogSession,
+  RevisionLineageSession,
+  StudyReaderSession,
+  StudyVariantSession,
+} from "./lab-session";
 import {
   CATALOG_RESOURCE,
   KINDS,
@@ -56,8 +65,9 @@ import {
   REVISIONS_RESOURCE,
   STUDY_RESOURCE,
   SUPPORTED_RESOURCES,
+  VARIANT_RESOURCE,
 } from "./resources";
-import type { RevisionCatalog, RevisionLineage, RevisionRef, StudyReader } from "./types";
+import type { RevisionCatalog, RevisionLineage, RevisionRef, StudyReader, StudyVariant } from "./types";
 import TYPES_CODE from "./types.txt";
 
 const VENDOR_ID = "lab";
@@ -362,6 +372,9 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
     if (resourceUrlPattern === REVISIONS_RESOURCE.urlPattern) {
       return { iframeHtml: REVISIONS_CONFIGURATOR_HTML, ui: new RpcStub(new RevisionsConfiguratorUI()) };
     }
+    if (resourceUrlPattern === VARIANT_RESOURCE.urlPattern) {
+      return { iframeHtml: VARIANT_CONFIGURATOR_HTML, ui: new RpcStub(new VariantConfiguratorUI()) };
+    }
     if (resourceUrlPattern === STUDY_RESOURCE.urlPattern) {
       return { iframeHtml: STUDY_CONFIGURATOR_HTML, ui: new RpcStub(new StudyConfiguratorUI()) };
     }
@@ -380,6 +393,14 @@ export class LabUser extends WorkerEntrypoint<Env, LabUserProps> implements Gate
       return {
         class: this.ctx.exports.RevisionCatalogGatekeeper({ props: { userObjectId } }),
         resource: CATALOG_RESOURCE,
+      };
+    }
+    if (resource.type === "variant") {
+      return {
+        class: this.ctx.exports.StudyVariantGatekeeper({
+          props: { userObjectId, studyId: resource.studyId, label: resource.label },
+        }),
+        resource: VARIANT_RESOURCE,
       };
     }
     if (resource.type === "revisions") {
@@ -441,6 +462,7 @@ export class LabVerifier extends WorkerEntrypoint<Env, LabUserProps> implements 
     const api = new LabApi(config, () => account.getActing());
     try {
       if (resource.type === "catalog") await api.catalog();
+      else if (resource.type === "variant") await api.portfolio(resource.studyId, resource.label);
       else if (resource.type === "revisions") await api.listRevisions(resource.kind, resource.name);
       else await api.getStudy(resource.studyId);
       return true;
@@ -477,6 +499,15 @@ class RevisionsConfiguratorUI extends RpcTarget implements RevisionsConfigurator
 }
 
 @validateRpc()
+class VariantConfiguratorUI extends RpcTarget implements VariantConfiguratorRpc {
+  async resourceUrl(studyId: string, label: string): Promise<string> {
+    const url = resourceUrl({ type: "variant", studyId: studyId.trim(), label: label.trim() });
+    if (!parseResourceUrl(url)) throw new Error("A study ID looks like stu_0001, and a variant label like a.");
+    return url;
+  }
+}
+
+@validateRpc()
 class StudyConfiguratorUI extends RpcTarget implements StudyConfiguratorRpc {
   async resourceUrl(studyId: string): Promise<string> {
     const url = resourceUrl({ type: "study", studyId: studyId.trim() });
@@ -489,6 +520,7 @@ class StudyConfiguratorUI extends RpcTarget implements StudyConfiguratorRpc {
 // Gatekeepers: one per bound resource. Both are read-only.
 
 type RevisionCatalogProps = LabUserProps;
+type StudyVariantProps = LabUserProps & { studyId: string; label: string };
 type RevisionLineageProps = LabUserProps & { kind: RevisionRef["kind"]; name: string };
 type StudyReaderProps = LabUserProps & { studyId: string };
 
@@ -526,6 +558,87 @@ abstract class LabGatekeeper<Props extends LabUserProps, Session> extends Durabl
   async applyAction(_action: number, _cache: RpcStub<GitCache>): Promise<void> { throw new Error(READ_ONLY); }
   async rejectAction(_action: number): Promise<void> { throw new Error(READ_ONLY); }
   async revertAction(_action: number): Promise<void> { throw new Error(READ_ONLY); }
+}
+
+/**
+ * One study variant. Its only write, recording a run, is a queued action: the run waits in this
+ * gatekeeper's storage until the workspace approves it (or auto-approves the `lab.record_run`
+ * kind), and is sent to the lab only then.
+ */
+@validateRpc()
+export class StudyVariantGatekeeper extends DurableObject<Env, StudyVariantProps>
+    implements Gatekeeper<StudyVariant> {
+  #api(): LabApi {
+    const account = this.ctx.exports.UserAccount.get(
+      this.ctx.exports.UserAccount.idFromString(this.ctx.props.userObjectId));
+    return new LabApi(requireConfig(this.env), () => account.getActing());
+  }
+
+  #url(): string {
+    return resourceUrl({ type: "variant", studyId: this.ctx.props.studyId, label: this.ctx.props.label });
+  }
+
+  #pending(): PendingRun[] {
+    return this.ctx.storage.kv.get<PendingRun[]>("pending") ?? [];
+  }
+
+  async describe(): Promise<ResourceDescription> {
+    return {
+      url: this.#url(),
+      title: `Study ${this.ctx.props.studyId}, variant ${this.ctx.props.label}`,
+      snippet: "Run this study variant: read its cycles and portfolio, and record its decisions.",
+      suggestedBindingName: "LAB_VARIANT",
+      tsType: "StudyVariant",
+    };
+  }
+
+  async getTypeScriptTypes(): Promise<string> { return TYPES_CODE; }
+  async getAutoApprovableActions(): Promise<ActionKind[]> { return [RECORD_RUN_KIND]; }
+
+  async startSession(approvalQueue: RpcStub<ApprovalQueue>): Promise<StudyVariant> {
+    const kv = this.ctx.storage.kv;
+    return new StudyVariantSession(this.#api(), approvalQueue.dup(), this.ctx.props.studyId,
+        this.ctx.props.label, {
+          list: () => kv.get<PendingRun[]>("pending") ?? [],
+          add: (report) => {
+            const actionId = (kv.get<number>("nextAction") ?? 0) + 1;
+            kv.put("nextAction", actionId);
+            kv.put<PendingRun[]>("pending", [
+              ...(kv.get<PendingRun[]>("pending") ?? []),
+              { actionId, report, submittedAt: new Date().toISOString() },
+            ]);
+            return actionId;
+          },
+        });
+  }
+
+  async applyAction(action: number, _cache: RpcStub<GitCache>): Promise<void> {
+    const pending = this.#pending().find((p) => p.actionId === action);
+    // Applying again after a success is harmless: the lab keeps one run per cycle key.
+    if (!pending) return;
+    await this.#api().recordRun(this.ctx.props.studyId, this.ctx.props.label, pending.report);
+    this.ctx.storage.kv.put<PendingRun[]>("pending", this.#pending().filter((p) => p.actionId !== action));
+  }
+
+  async rejectAction(action: number): Promise<void> {
+    this.ctx.storage.kv.put<PendingRun[]>("pending", this.#pending().filter((p) => p.actionId !== action));
+  }
+
+  async revertAction(_action: number): Promise<{ message: string; canRetry: boolean }> {
+    return {
+      message: "Run records are permanent in the lab. Record a later run instead.",
+      canRetry: false,
+    };
+  }
+
+  async addObserver(_id: string, user: Fetcher<GatekeeperUserVerifier>): Promise<void> {
+    const verifier = user as unknown as Fetcher<LabVerifierApi>;
+    if (!(await verifier.canRead(this.#url()))) {
+      throw new Error("This collaborator has no trading lab connection that can read the bound variant.");
+    }
+  }
+
+  async removeObserver(_id: string): Promise<void> {}
 }
 
 @validateRpc()

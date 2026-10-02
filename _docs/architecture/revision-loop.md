@@ -10,6 +10,9 @@ covers:
   - packages/skills/skills/breakout-workflow/files/revision.json
   - packages/gatekeeper-lab
   - packages/skills/skills/lab-catalog
+  - packages/skills/skills/breakout-workflow/files/lib/study.ts
+  - packages/skills/skills/breakout-workflow/files/server.ts
+  - packages/skills/skills/breakout-workflow/__tests__/study.test.ts
 touchpoints:
   - .gitignore
   - scripts/run-dev-server.ts
@@ -21,7 +24,7 @@ updated: 2026-10-02
 
 ## Overview
 
-The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. The `lab-catalog` skill is a view of everything published, read through the connector. Binding revisions to running Gadgets, run records, views, and branding are not built in the fork.
+The `gadgets` command line and its MCP server can qualify a skill directory and publish it to the trading lab's registry as an immutable revision. This is the Qualify and Publish stages for artifacts authored under `packages/skills/skills/`. The lab connector, `packages/gatekeeper-lab`, lets a Gadget read published revisions, their files, and studies; it writes nothing. The `lab-catalog` skill is a view of everything published, read through the connector. A study variant resource lets a workflow Gadget run one variant of a lab study: it reads the cycle and portfolio and records its decision as a queued action; the lab books any fill. `breakout-workflow` does this when `LAB_VARIANT` is bound. Binding revisions to running Gadgets, run records, views, and branding are not built in the fork.
 
 ## Components
 
@@ -63,7 +66,17 @@ A bound resource is one of the following. Resource URLs use the fixed origin `ht
 
 - `https://lab.invalid/revisions`, served by `RevisionCatalogGatekeeper` as `RevisionCatalog`: `list(kind?)` from the lab's `GET /revisions`, `revisions(kind, name)`, and `files(kind, name, number)`.
 - `https://lab.invalid/revisions/<kind>/<name>`, served by `RevisionLineageGatekeeper` as `RevisionLineage`: `list()`, `get(number)`, and `files(number)`.
-- `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`.
+- `https://lab.invalid/studies/<stu_id>`, served by `StudyReaderGatekeeper` as `StudyReader`: `describe()`, `portfolios()`, and `runs()`.
+- `https://lab.invalid/studies/<stu_id>/variants/<label>`, served by `StudyVariantGatekeeper` as `StudyVariant`: `describe()`, `nextCycle()`, `portfolio()`, `runs()`, and `recordRun()`.
+
+`recordRun` is the connector's only write, and it is a queued action. It stores the report in the gatekeeper's own storage under the next action ID and submits it as kind `lab.record_run` ("Record study runs"), marked auto-approvable, with the report as a JSON field. A repeat for the same cycle key reuses the waiting action. It returns the run with ID `pending:<n>`. While any run is waiting, `nextCycle()` returns null and `runs()` lists the waiting runs first. `applyAction` posts the report to the lab's `POST /studies/:id/variants/:label/runs`, which keeps one run per cycle key, and then forgets it. `rejectAction` forgets it unsent. `revertAction` explains that runs are permanent. `getAutoApprovableActions` lists the kind, so a workspace can approve every run without asking.
+
+`breakout-workflow`'s `runStudyCycle()` and its scheduled callback, when `LAB_VARIANT` is bound:
+1. Take the variant's cycle and portfolio.
+2. Run the same pure workflow (`lib/study.ts`).
+3. Record `{event} -> {action}`, an order intent for a buy or sell, and evidence steps 1 to 4.
+
+The workflow's own virtual fill (steps 5 to 7) is not sent; the lab's risk gate and fills decide.
 
 Each read sends `x-lab-connection` and `x-lab-on-behalf-of`, waits for the lab's answer, then calls `authorizeObservation` before returning. A refused read records no observation.
 
@@ -109,7 +122,8 @@ The lab's registry contract is defined in `factory-level/ai-trader`, in `docs/ar
 - **Publish does not push to a Workshop.** Publishing to the lab and pushing the blueprint to a Workshop are separate commands, and nothing links the lab's revision to a blueprint id.
 - **No binding-value scan.** The secret check finds credentials. It does not detect environment names or other binding values in content.
 - **The local demonstration has no lab behind its mock edge**, so publish has been exercised only against a stubbed lab in unit tests.
-- **The lab connector only reads.** Run records (`StudyVariant.recordRun`), portfolios, comparisons, diffs, and analytics are declared in its types but throw, because the lab does not serve them yet.
+- **The lab connector writes only run records.** Comparisons, diffs, and analytics are declared in its types but throw, because the lab does not serve them yet.
+- **A study variant is bound by hand.** Nothing creates a Gadget per variant when a study is created, and nothing checks that the bound Gadget runs the variant's exact revision.
 - **The connector acts for a person, not as an agent principal.** The design asks each study variant to call the lab as its own principal. The connector signs in as the deployment's service and names the connection and person on each read.
 - **Review per revision, analytics per agent, run records, per-variant isolation, views, and branding** are not built.
 

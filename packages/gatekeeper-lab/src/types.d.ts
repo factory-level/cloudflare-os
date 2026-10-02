@@ -190,17 +190,17 @@ export type RunQuery = {
 /**
  * One study variant: the only thing a trading agent running in a study can reach.
  *
- * Not available yet: every method always throws `"Not available yet"`.
- *
  * Each cycle: call `nextCycle()`, decide from its bars, then `recordRun()` once. The variant's
- * portfolio changes only through fills the lab makes from recorded runs.
+ * portfolio changes only through fills the lab makes from recorded runs. An approved order fills at
+ * the next session's open, so its fill appears on the run only after a later `nextCycle()`.
  */
 export interface StudyVariant {
   /** The study, this variant's label, and the exact revision it must be running. */
   describe(): Promise<{ study: Study; label: string; revision: RevisionRef & { contentHash: string } }>;
 
   /**
-   * The cycle waiting for this variant, or null when there is nothing to do. Calling it again
+   * The cycle waiting for this variant, or null when there is nothing to do: the next session has
+   * not closed yet, or this variant's last run is still waiting to be recorded. Calling it again
    * before `recordRun()` returns the same cycle.
    */
   nextCycle(): Promise<Cycle | null>;
@@ -209,9 +209,12 @@ export interface StudyVariant {
   portfolio(): Promise<Portfolio>;
 
   /**
-   * Records what this variant decided for a cycle and returns the stored run, including any
-   * virtual fill. An order intent that breaks a risk limit is recorded with `riskRejection` set and
-   * no fill.
+   * Records what this variant decided for a cycle and returns the run. An order intent that breaks
+   * a risk limit is recorded with `riskRejection` set and no fill.
+   *
+   * Recording waits for the workspace to allow it. Until then the returned run's `id` starts with
+   * `"pending:"`, `runs()` lists it that way, and `nextCycle()` returns null. A workspace can allow
+   * every run to be recorded without asking each time.
    *
    * Safe to repeat: the same `cycleKey` returns the run already recorded and changes nothing.
    *
@@ -228,11 +231,7 @@ export interface StudyVariant {
 export interface StudyReader {
   describe(): Promise<Study>;
 
-  /**
-   * Each variant's virtual portfolio.
-   *
-   * Not available yet: always throws `"Not available yet"`.
-   */
+  /** Each variant's virtual portfolio. */
   portfolios(): Promise<{ label: string; portfolio: Portfolio }[]>;
 
   /**
@@ -244,11 +243,7 @@ export interface StudyReader {
    */
   compare(first: string, second: string): Promise<Comparison>;
 
-  /**
-   * Runs of this study, newest first. `variant` limits them to one variant.
-   *
-   * Not available yet: always throws `"Not available yet"`.
-   */
+  /** Runs of this study, newest first. `variant` limits them to one variant. */
   runs(query?: RunQuery & { variant?: string }): Promise<Run[]>;
 }
 
