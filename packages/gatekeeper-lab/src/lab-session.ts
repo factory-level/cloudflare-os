@@ -173,8 +173,13 @@ export class StudyReaderSession extends RpcTarget implements StudyReader {
     return portfolios;
   }
 
-  async compare(_first: string, _second: string): Promise<Comparison> {
-    throw new Error(NOT_AVAILABLE);
+  async compare(first: string, second: string): Promise<Comparison> {
+    const comparison = await this.#api.compare(this.#studyId, first, second);
+    await this.#queue.authorizeObservation({
+      title: `Compare ${first} and ${second} in study ${this.#studyId}`,
+      description: `Compared over ${comparison.sharedCycles} shared cycles: ${comparison.outcome}.`,
+    });
+    return comparison;
   }
 
   async runs(query?: RunQuery & { variant?: string }): Promise<Run[]> {

@@ -28,6 +28,28 @@ export type Run = {
   fill: { side: string; quantity: number; priceCents: number; feeCents: number } | null;
 };
 
+export type Comparison = {
+  variants: [string, string];
+  sharedCycles: number;
+  equityChangeCents: [number, number];
+  costMicroUsd: [number, number];
+  outcome: string;
+  recordClass: string;
+};
+
+/** One sentence for a comparison. It never names a winner. */
+export function comparisonSummary(c: Comparison, currency: string): string {
+  const [a, b] = c.variants;
+  const meaning: Record<string, string> = {
+    invalid: "cannot be compared",
+    insufficient_sample: "have no cycle in common yet",
+    incomplete: "have not run the same cycles",
+    inconclusive: "differ, but no threshold is set to call it",
+  };
+  return `${a} and ${b} ${meaning[c.outcome] ?? c.outcome} (${c.sharedCycles} shared cycles; equity change ` +
+    `${money(c.equityChangeCents[0], currency)} vs ${money(c.equityChangeCents[1], currency)}).`;
+}
+
 /** Cents as `1,234.56 USD`, exactly, without floating point. */
 export function money(cents: number, currency: string): string {
   const negative = cents < 0;

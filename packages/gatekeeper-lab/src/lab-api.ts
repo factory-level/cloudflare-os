@@ -4,6 +4,7 @@
 
 import type {
   CatalogEntry,
+  Comparison,
   Cycle,
   Portfolio,
   Revision,
@@ -208,6 +209,11 @@ export class LabApi {
 
   async studyRuns(studyId: string, query: RunQuery & { variant?: string } = {}): Promise<Run[]> {
     return (await this.#readQuery<{ runs: Run[] }>(query, "studies", studyId, "runs")).runs;
+  }
+
+  async compare(studyId: string, first: string, second: string): Promise<Comparison> {
+    return (await this.#readQuery<{ comparison: Comparison }>({ first, second }, "studies", studyId, "compare"))
+      .comparison;
   }
 
   async portfolios(studyId: string): Promise<{ label: string; portfolio: Portfolio }[]> {

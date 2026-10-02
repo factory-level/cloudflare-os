@@ -238,8 +238,6 @@ export interface StudyReader {
    * Compares two variants over the cycles both received.
    *
    * Throws if either label is not a variant of this study.
-   *
-   * Not available yet: always throws `"Not available yet"`.
    */
   compare(first: string, second: string): Promise<Comparison>;
 

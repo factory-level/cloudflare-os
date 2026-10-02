@@ -1,10 +1,18 @@
 // The console page. `gadget` is the stub the Workshop injects for this iframe.
-import { change, money, orderOutcome, type Portfolio, type Run, type Study, tally } from "./lib/console.ts";
+import {
+  change, type Comparison, comparisonSummary, money, orderOutcome, type Portfolio, type Run, type Study, tally,
+} from "./lib/console.ts";
 
 declare const gadget: {
   overview(): Promise<
     | { bound: false }
-    | { bound: true; study: Study; portfolios: { label: string; portfolio: Portfolio }[]; runs: Run[] }
+    | {
+        bound: true;
+        study: Study;
+        portfolios: { label: string; portfolio: Portfolio }[];
+        runs: Run[];
+        comparison: Comparison | null;
+      }
   >;
 };
 
@@ -54,6 +62,10 @@ try {
             c ? `${money(c.cents, "").trim()} (${(c.bps / 100).toFixed(2)}%)` : "-",
             String(n.runs), String(n.orders), String(n.refused), String(n.filled)];
         })),
+      ...(view.comparison
+        ? [el("h2", "Comparison", "font-size: 15px"),
+          el("p", comparisonSummary(view.comparison, study.startingCapital.currency))]
+        : []),
       el("h2", "Runs, newest first", "font-size: 15px"),
       table(["Cycle", "Variant", "Agent", "Outcome", "Decision", "Order"],
         runs.map((r) => [r.cycleKey, r.variant, r.agent, r.outcome, r.decision, orderOutcome(r)])),
