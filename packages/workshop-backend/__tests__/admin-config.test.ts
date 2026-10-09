@@ -2,6 +2,34 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ADMIN_CONFIG, defaultOutputFormatId, normalizeAdminConfig, parseAdminConfig, reorderFormats, resolveFormatOutput, sanitizeOutputOverrides, serializeAdminConfig } from "../src/admin-config.js";
 
 describe("parseAdminConfig", () => {
+  it("bootstraps pentacles branding before any admin settings are stored", () => {
+    for (let stored of [null, "{}", JSON.stringify({ signupsEnabled: false })]) {
+      expect(parseAdminConfig(stored)).toMatchObject({
+        siteName: "pentacles",
+        accentColor: "#047857",
+      });
+    }
+    expect(normalizeAdminConfig({})).toMatchObject({
+      siteName: "pentacles",
+      accentColor: "#047857",
+    });
+  });
+
+  it("preserves custom saved branding", () => {
+    let branding = { siteName: "My workspace", accentColor: "#123456" };
+    let stored = serializeAdminConfig({ ...DEFAULT_ADMIN_CONFIG, ...branding });
+    expect(parseAdminConfig(stored)).toMatchObject(branding);
+  });
+
+  it("falls back to pentacles branding when saved branding is empty", () => {
+    // A config saved before the pentacles defaults existed stores "" for both fields.
+    let stored = serializeAdminConfig({ ...DEFAULT_ADMIN_CONFIG, siteName: "", accentColor: "" });
+    expect(parseAdminConfig(stored)).toMatchObject({
+      siteName: "pentacles",
+      accentColor: "#047857",
+    });
+  });
+
   it("backfills fields missing from a config persisted before they existed", () => {
     // A config written before `formats` was added. Every consumer indexes into these, so a missing
     // field must come back as its default rather than undefined.

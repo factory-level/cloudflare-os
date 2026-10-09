@@ -1,6 +1,7 @@
 /** Hardened HTML and browser request guards for gatekeeper connect flows. */
 
 import type { ConnectHandoff } from "@gadgets/workshop-shared/gatekeeper";
+import { BRANDING_ACCENT_COLOR } from "@gadgets/workshop-shared/branding";
 
 const HTML_ESCAPES: Readonly<Record<string, string>> = {
   "&": "&amp;",
@@ -79,6 +80,8 @@ export function connectMutationError(
 
 /**
  * Shared connect-page layout. Connect pages cannot load Workshop CSS, so this mirrors its palette.
+ * The accent is the deployment's branded one (fork: pentacles branding), darkened in dark mode the
+ * same way the Workshop darkens it.
  */
 export const PAGE_STYLE = `
   :root {
@@ -91,7 +94,7 @@ export const PAGE_STYLE = `
     --text: #1c1a18;
     --strong: #100f0d;
     --subtle: oklch(52% 0.006 60);
-    --brand: #ff4801;
+    --brand: ${BRANDING_ACCENT_COLOR};
     --danger: oklch(63.7% 0.237 25.331);
     /* Kumo's primary button is "contrast": near-black in light mode, the accent in dark. */
     --contrast: #14110f;
@@ -105,9 +108,9 @@ export const PAGE_STYLE = `
       --text: oklch(0.92 0.01 285);
       --strong: oklch(0.92 0.01 285);
       --subtle: oklch(0.66 0.02 285);
-      --brand: #b84e00;
+      --brand: oklch(from ${BRANDING_ACCENT_COLOR} 0.45 c h);
       --danger: oklch(70.4% 0.191 22.216);
-      --contrast: #b84e00;
+      --contrast: oklch(from ${BRANDING_ACCENT_COLOR} 0.45 c h);
     }
   }
 

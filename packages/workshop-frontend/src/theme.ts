@@ -12,6 +12,7 @@
 // validates the seed before interpolating it into CSS values.
 
 import { applyAccentColor as applyAccentColorToStyle } from '@gadgets/workshop-shared/theme'
+import { BRANDING_ACCENT_COLOR } from '@gadgets/workshop-shared/branding'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 export type ResolvedThemeMode = 'light' | 'dark'
@@ -61,10 +62,10 @@ export function applyStoredThemeMode(): ResolvedThemeMode {
   return applyThemeMode(readThemeMode())
 }
 
-/** Apply the accent color to the document root. Pass "" / invalid to clear back to the base theme. */
+/** Apply the accent color to the document root. Pass "" to use the deployment's branded accent. */
 export function applyAccentColor(color: string | null | undefined): void {
-  applyAccentColorToStyle(document.documentElement.style, color)
+  applyAccentColorToStyle(document.documentElement.style, color || DEFAULT_ACCENT_COLOR)
 }
 
 /** The base/default accent, shown in the admin picker when no custom color is set. */
-export const DEFAULT_ACCENT_COLOR = '#ff4801'
+export const DEFAULT_ACCENT_COLOR = BRANDING_ACCENT_COLOR

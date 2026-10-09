@@ -23,6 +23,7 @@
 // RPC to the Workshop. Among other things, through this interface, the Workshop provides the
 // Gadget a stub pointing to the Gadget's server-side Durable Object interface.
 
+import { BRANDING_SITE_NAME } from "./branding.js";
 import { RpcCompatible, RpcStub, RpcTarget } from "capnweb";
 import { AccountDescription, ActionKind, ActionDescription, AvatarImage, GatekeeperUiFrame, ObservationDescription, ResourceDescription, ResourceConfiguratorFrame, SupportedResource, VendorDescription, HookDescription } from "./gatekeeper.js";
 import type { CodeChange } from "./code-change.js";
@@ -969,7 +970,7 @@ export const MAX_SITE_NAME_LENGTH = 40;
  * What this deployment calls itself when the admin has not set a custom `siteName`. Also the
  * product's own name, so it appears in prose the server and UI address to the user.
  */
-export const DEFAULT_SITE_NAME = "Cloudflare OS";
+export const DEFAULT_SITE_NAME = BRANDING_SITE_NAME;
 
 /**
  * The name to display for this deployment. Accepts an unset or not-yet-loaded `siteName` so both
