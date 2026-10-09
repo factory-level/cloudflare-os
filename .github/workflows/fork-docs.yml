@@ -1,0 +1,34 @@
+name: Fork docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs:
+    name: Check fork docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Full history: the upstream-touchpoint check diffs against the merge base with upstream.
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # origin is this fork, so its main would count fork files as upstream-owned.
+      - name: Fetch upstream
+        run: git fetch --no-tags https://github.com/cloudflare/cloudflare-os.git main:refs/remotes/upstream/main
+
+      - name: Check fork docs
+        run: UPSTREAM_REF=upstream/main _docs/check-docs.sh
+
+      - name: Check whitespace
+        if: github.event_name == 'pull_request'
+        run: git diff --check origin/${{ github.base_ref }}...HEAD
