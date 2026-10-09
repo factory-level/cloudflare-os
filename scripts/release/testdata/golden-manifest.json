@@ -466,6 +466,87 @@
         "BASE_URL": "$PUBLIC_BASE_URL/gatekeeper/homeassistant"
       }
     },
+    "gatekeeper-lab": {
+      "bindings": [
+        {
+          "name": "CLIENT_ID",
+          "text": "$SECRET(CLIENT_ID)",
+          "type": "secret_text"
+        },
+        {
+          "name": "CLIENT_SECRET",
+          "text": "$SECRET(CLIENT_SECRET)",
+          "type": "secret_text"
+        }
+      ],
+      "compatibilityDate": "2026-09-04",
+      "compatibilityFlags": [
+        "allow_irrevocable_stub_storage"
+      ],
+      "inputs": [
+        {
+          "kind": "secret",
+          "label": "OAuth client ID",
+          "name": "CLIENT_ID"
+        },
+        {
+          "kind": "secret",
+          "label": "OAuth client secret",
+          "name": "CLIENT_SECRET"
+        }
+      ],
+      "installable": true,
+      "kind": "gatekeeper",
+      "mainModule": "lab.js",
+      "migrations": [
+        {
+          "new_sqlite_classes": [
+            "UserAccount",
+            "RevisionLineageGatekeeper",
+            "StudyReaderGatekeeper"
+          ],
+          "tag": "v0"
+        },
+        {
+          "new_sqlite_classes": [
+            "RevisionCatalogGatekeeper"
+          ],
+          "tag": "v1"
+        },
+        {
+          "new_sqlite_classes": [
+            "StudyVariantGatekeeper"
+          ],
+          "tag": "v2"
+        },
+        {
+          "new_sqlite_classes": [
+            "LabAnalyticsGatekeeper"
+          ],
+          "tag": "v3"
+        }
+      ],
+      "modules": [
+        {
+          "name": "lab.js",
+          "r2Key": "blobs/modules/1012bfa30162687320854bc2a5e9200088e348fa84f6acdc9f71358644b9271e",
+          "sha256": "1012bfa30162687320854bc2a5e9200088e348fa84f6acdc9f71358644b9271e",
+          "size": 56,
+          "type": "esm"
+        }
+      ],
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1,
+        "logs": {
+          "invocation_logs": false
+        }
+      },
+      "shortName": "lab",
+      "vars": {
+        "BASE_URL": "$PUBLIC_BASE_URL/gatekeeper/lab"
+      }
+    },
     "gatekeeper-linear": {
       "bindings": [
         {
