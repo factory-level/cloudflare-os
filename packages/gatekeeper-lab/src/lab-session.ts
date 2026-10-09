@@ -6,9 +6,12 @@ import { validateRpc } from "capnweb-validate";
 import type { ApprovalQueue } from "@gadgets/workshop-shared/gatekeeper";
 import type { LabApi } from "./lab-api";
 import type {
+  AgentSummary,
   CatalogEntry,
   Comparison,
   Cycle,
+  EquityPoint,
+  LabAnalytics,
   Portfolio,
   Revision,
   RevisionDiff,
@@ -20,6 +23,7 @@ import type {
   RunQuery,
   RunReport,
   Study,
+  StudyOverview,
   StudyReader,
   StudyVariant,
 } from "./types";
@@ -189,6 +193,69 @@ export class StudyReaderSession extends RpcTarget implements StudyReader {
       description: `Read ${runs.length} runs${query?.variant ? ` of variant ${query.variant}` : ""}.`,
     });
     return runs;
+  }
+}
+
+@validateRpc()
+export class LabAnalyticsSession extends RpcTarget implements LabAnalytics {
+  readonly #api: LabApi;
+  readonly #queue: RpcStub<ApprovalQueue>;
+
+  constructor(api: LabApi, queue: RpcStub<ApprovalQueue>) {
+    super();
+    this.#api = api;
+    this.#queue = queue;
+  }
+
+  [Symbol.dispose](): void { this.#queue[Symbol.dispose](); }
+
+  async studies(): Promise<StudyOverview[]> {
+    const studies = await this.#api.studies();
+    const shown = studies.slice(0, MAX_FILES_LISTED).map((s) => `${s.study.name} #${s.study.number}`);
+    const alerts = studies.reduce((n, s) => n + s.alerts.length, 0);
+    await this.#queue.authorizeObservation({
+      title: "Read every study",
+      description: studies.length
+        ? `Read ${studies.length} studies with ${alerts} open alerts: ${shown.join(", ")}` +
+          (studies.length > shown.length ? ", ..." : "") + "."
+        : "No study exists.",
+    });
+    return studies;
+  }
+
+  async equity(studyId: string): Promise<{ label: string; points: EquityPoint[] }[]> {
+    const variants = await this.#api.equity(studyId);
+    await this.#queue.authorizeObservation({
+      title: `Read the equity curves of study ${studyId}`,
+      description: `Read ${variants.length} equity curves: ` +
+        variants.map((v) => `${v.label} over ${v.points.length} cycles`).join(", ") + ".",
+    });
+    return variants;
+  }
+
+  async agents(): Promise<{ agent: string; runs: number }[]> {
+    const agents = await this.#api.agents();
+    await this.#queue.authorizeObservation({
+      title: "List agents",
+      description: agents.length
+        ? `Read ${agents.length} agents: ` +
+          agents.slice(0, MAX_FILES_LISTED).map((a) => `${a.agent} (${a.runs} runs)`).join(", ") +
+          (agents.length > MAX_FILES_LISTED ? ", ..." : "") + "."
+        : "No agent has recorded a run.",
+    });
+    return agents;
+  }
+
+  async agent(agent: string, options?: { from?: string; to?: string }): Promise<AgentSummary[]> {
+    const summary = await this.#api.agentSummary(agent, options);
+    const range = [options?.from && `from ${options.from}`, options?.to && `to ${options.to}`]
+      .filter(Boolean).join(" ");
+    await this.#queue.authorizeObservation({
+      title: `Read the analytics of agent ${agent}`,
+      description: `Read ${agent}'s activity${range ? ` ${range}` : ""}: ${summary[0]?.cycles ?? 0} cycles ` +
+        `across ${summary.length - 1} revisions.`,
+    });
+    return summary;
   }
 }
 

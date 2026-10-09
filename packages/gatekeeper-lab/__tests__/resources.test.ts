@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  CATALOG_RESOURCE, parseResourceUrl, resourceUrl, REVISIONS_RESOURCE, STUDY_RESOURCE,
+  ANALYTICS_RESOURCE, CATALOG_RESOURCE, parseResourceUrl, resourceUrl, REVISIONS_RESOURCE, STUDY_RESOURCE,
 } from "../src/resources";
 
 describe("resource URLs", () => {
@@ -8,9 +8,10 @@ describe("resource URLs", () => {
     const revisions = { type: "revisions", kind: "workflow", name: "breakout-2" } as const;
     const study = { type: "study", studyId: "stu_0012" } as const;
     const variant = { type: "variant", studyId: "stu_0012", label: "b-2" } as const;
-    for (const resource of [{ type: "catalog" } as const, revisions, study, variant]) {
+    for (const resource of [{ type: "catalog" } as const, { type: "analytics" } as const, revisions, study, variant]) {
       expect(parseResourceUrl(resourceUrl(resource))).toEqual(resource);
     }
+    expect(ANALYTICS_RESOURCE.urlPattern).toBe("https://lab.invalid/analytics");
     expect(CATALOG_RESOURCE.urlPattern).toBe("https://lab.invalid/revisions");
     expect(REVISIONS_RESOURCE.urlPattern).toBe("https://lab.invalid/revisions/:kind/:name");
     expect(STUDY_RESOURCE.urlPattern).toBe("https://lab.invalid/studies/:studyId");
@@ -30,6 +31,7 @@ describe("resource URLs", () => {
       "https://lab.invalid/revisions/workflow",
       "https://lab.invalid/revisions/",
       "https://lab.invalid/connections/con_0001",
+      "https://lab.invalid/analytics/momentum",
       "not a url",
     ]) {
       expect(parseResourceUrl(url)).toBeNull();

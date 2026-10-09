@@ -1,0 +1,30 @@
+{
+  "$comment": "Experiments and agent analytics for the whole trading lab, read through the lab connector. Pushed with `gadgets push`, never bundled.",
+  "blueprintId": "skill.lab-analytics",
+  "title": "Lab Analytics",
+  "description": "Every study at a glance with its health, alerts and equity curves, and every agent's decisions, orders, fills, fees, virtual equity change and reported cost, overall and per revision.",
+  "output": {
+    "id": "analytics",
+    "noun": "Analytics view",
+    "plural": "Analytics views",
+    "icon": "chartBar"
+  },
+  "author": {
+    "type": "user",
+    "name": "Local developer",
+    "id": "local@demo.local"
+  },
+  "revision": 1,
+  "created": "2026-10-02T00:00:00.000Z",
+  "version": 1,
+  "lastUpdated": "2026-10-02T00:00:00.000Z",
+  "bindings": {
+    "LAB_ANALYTICS": {
+      "title": "Trading lab analytics",
+      "description": "Connect the trading lab to show its studies and agents. The view only reads.",
+      "type": "gatekeeper",
+      "gatekeeperName": "lab",
+      "typeUrlPattern": "https://lab.invalid/analytics"
+    }
+  }
+}
