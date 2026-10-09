@@ -9,7 +9,8 @@ covers:
 touchpoints:
   - packages/workshop-frontend/src/main.tsx
   - pnpm-lock.yaml
-updated: 2026-10-02
+  - scripts/env-passthrough.test.ts
+updated: 2026-10-08
 ---
 
 # Dev Login
@@ -57,6 +58,7 @@ node packages/gadgets-cli/src/bin.ts dev-login --user alice --app http://localho
 | --- | --- | --- |
 | `packages/workshop-frontend/src/main.tsx` | Imports and calls `consumeDevLoginToken()` at module top | The token must be in `localStorage` before `useAuth` reads it, and `main.tsx` is the only entry point that runs earlier |
 | `pnpm-lock.yaml` | Adds `hash-wasm` to the `packages/gadgets-cli` importer | Generated from the CLI's new dependency |
+| `scripts/env-passthrough.test.ts` | Lists `GADGETS_DEV_PASSWORD` among the CLI's external variables | The test enumerates every environment read in the workspace |
 
 ## Upstream Dependencies
 

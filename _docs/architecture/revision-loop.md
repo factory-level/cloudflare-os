@@ -9,6 +9,7 @@ covers:
   - packages/skills/skills/momentum-signal/files/revision.json
   - packages/skills/skills/breakout-workflow/files/revision.json
   - packages/gatekeeper-lab
+  - scripts/release/testdata/fixture-bundles/gatekeeper-lab
   - packages/skills/skills/lab-catalog
   - packages/skills/skills/study-console
   - packages/skills/skills/lab-analytics
@@ -19,7 +20,8 @@ touchpoints:
   - .gitignore
   - scripts/run-dev-server.ts
   - pnpm-lock.yaml
-updated: 2026-10-02
+  - scripts/release/testdata/golden-manifest.json
+updated: 2026-10-08
 ---
 
 # Revision Loop
@@ -109,6 +111,7 @@ Disconnecting revokes the connection at the lab (`POST /connections/:id/revoke`)
 | `.gitignore` | Removes the fork's own ignore line for `packages/gatekeeper-lab/`, added with the gadgets CLI | The package is now committed |
 | `scripts/run-dev-server.ts` | Adds a `gatekeeper-lab` entry to `PASSTHROUGH_GATEKEEPER_VARS` | It is the only way the dev server passes deployment variables to a gatekeeper without committing them to `wrangler.jsonc` |
 | `pnpm-lock.yaml` | The connector's importer | The lockfile records every workspace package |
+| `scripts/release/testdata/golden-manifest.json` | Adds the `gatekeeper-lab` entry, with its fixture bundle under `fixture-bundles/gatekeeper-lab/` | Release discovery treats every package with a `wrangler.jsonc` as deployable, and the golden test requires each one |
 
 ## Upstream Dependencies
 
@@ -136,4 +139,5 @@ The lab's registry contract is defined in `factory-level/ai-trader`, in `docs/ar
 
 ## Open Questions
 
+- In the release manifest the connector asks for the default OAuth `CLIENT_ID` and `CLIENT_SECRET`, not `LAB_URL`, `LAB_CLIENT_ID` and `LAB_CLIENT_SECRET`. The fork deploys from the command line, so nothing reads it yet; a `deploy-inputs.json` would fix it if the release pipeline is ever used.
 - The manifest `version` in `blueprint.json` is outside the content hash, so the same content can be packed under two numbers. The lab accepts that; whether it should is undecided.
