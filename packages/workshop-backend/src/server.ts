@@ -31,6 +31,7 @@ import { resolveUiFeatureFlags } from "./feature-flags";
 import { serveSiteLogo, SITE_LOGO_PATH } from "./site-logo.js";
 import { createWorkshopLogger } from "./observability";
 import { retryOnDoReset, wrapDoStubForTelemetry } from "./do-retry";
+import { checkBlueprintAssignments } from "./blueprint-assignments.js";
 
 const logger = createWorkshopLogger("workshop.server");
 
@@ -472,6 +473,7 @@ class AuthenticatedApiImpl extends RpcTarget implements AuthenticatedApi {
     // 1. Read blueprint from KV.
     let kvRecord = await readBlueprintKvRecord(this.env, blueprintId);
     if (!kvRecord) throw new Error("Blueprint not found.");
+    checkBlueprintAssignments(kvRecord.metadata.bindings, bindings);
 
     // 2. Read gzip-compressed Yjs doc from R2 and decompress.
     let codeBytes = await readBlueprintContent(this.env, blueprintId, kvRecord.metadata.version);
